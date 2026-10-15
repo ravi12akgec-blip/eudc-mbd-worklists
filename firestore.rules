@@ -33,5 +33,10 @@ service cloud.firestore {
       allow read: if approved();
       allow write: if office();
     }
+    // Consumer master data (names, addresses, outstanding) in text chunks: approved users read, office uploads.
+    match /master/{file} {
+      allow read: if approved();
+      allow write: if office();
+    }
   }
 }

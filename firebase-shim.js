@@ -27,7 +27,7 @@
   }
 
   firebase.initializeApp(cfg);
-  var auth = firebase.auth(), fs = firebase.firestore(), st = firebase.storage();
+  var auth = firebase.auth(), fs = firebase.firestore();
   try { fs.enablePersistence({ synchronizeTabs: true }).catch(function () {}); } catch (e) {}
 
   var state = { user: null, profile: null };
@@ -131,17 +131,27 @@
   };
   window.claude = { use: function (n) { return gate.then(function () { return n === 'db' ? db : n === 'user' ? userApi : n === 'downloads' ? downloads : null; }); } };
 
-  // ---- consumer data files live in Firebase Storage under master/ (approved users only)
-  var realFetch = window.fetch.bind(window), urlCache = {};
+  // ---- consumer data files live in Firestore under master/ (approved users only).
+  // Each file is stored as text in chunks (master/<file>~0, ~1, ...) with a small
+  // header doc master/<file> = {parts, size, updatedAt}. Works on the free Spark plan.
+  var CHUNK = 900000, fileCache = {};
+  function readMaster(name) {
+    if (!fileCache[name]) fileCache[name] = fs.doc('master/' + name).get().then(function (h) {
+      if (!h.exists) return null;
+      var n = h.data().parts || 0, jobs = [];
+      for (var i = 0; i < n; i++) jobs.push(fs.doc('master/' + name + '~' + i).get());
+      return Promise.all(jobs).then(function (ds) { return ds.map(function (d) { return (d.data() || {}).d || ''; }).join(''); });
+    }).catch(function (e) { delete fileCache[name]; throw e; });
+    return fileCache[name];
+  }
+  var realFetch = window.fetch.bind(window);
   window.fetch = function (input, init) {
     var u = typeof input === 'string' ? input : (input && input.url) || '';
-    var m = u.match(/^(?:\.\/)?data\/(.+)$/);
+    var m = u.match(/^(?:\.\/)?data\/([^?#]+)/);
     if (!m) return realFetch(input, init);
-    var path = 'master/' + m[1];
-    return gate.then(function () {
-      if (!urlCache[path]) urlCache[path] = st.ref(path).getDownloadURL().catch(function (e) { delete urlCache[path]; throw e; });
-      return urlCache[path];
-    }).then(function (url) { return realFetch(url, init); }, function () { return new Response('', { status: 404 }); });
+    return gate.then(function () { return readMaster(m[1]); }).then(function (txt) {
+      return txt == null ? new Response('', { status: 404 }) : new Response(txt, { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }, function () { return new Response('', { status: 404 }); });
   };
 
   // ---- helpers for the Office page (users, master data upload)
@@ -150,11 +160,16 @@
     users: function () { return fs.collection('users').get().then(function (r) { return r.docs.map(function (d) { var x = d.data(); x.uid = d.id; return x; }); }); },
     setUser: function (uid, patch) { return fs.doc('users/' + uid).update(patch); },
     uploadMaster: function (file, onProgress) {
-      return new Promise(function (res, rej) {
-        var t = st.ref('master/' + file.name).put(file, { contentType: 'application/json', cacheControl: 'private, max-age=3600' });
-        t.on('state_changed', function (s) { if (onProgress) onProgress(s.bytesTransferred / Math.max(1, s.totalBytes)); }, rej, function () { delete urlCache['master/' + file.name]; res(); });
+      return file.text().then(function (txt) {
+        var parts = Math.max(1, Math.ceil(txt.length / CHUNK)), i = 0;
+        function next() {
+          if (i >= parts) return fs.doc('master/' + file.name).set({ parts: parts, size: txt.length, updatedAt: new Date().toISOString(), by: (state.user && state.user.uid) || '' });
+          var k = i++;
+          return fs.doc('master/' + file.name + '~' + k).set({ d: txt.slice(k * CHUNK, (k + 1) * CHUNK) }).then(function () { if (onProgress) onProgress(i / parts); return next(); });
+        }
+        return next().then(function () { delete fileCache[file.name]; });
       });
     },
-    masterInfo: function (name) { return st.ref('master/' + name).getMetadata().then(function (m) { return m; }, function () { return null; }); }
+    masterInfo: function (name) { return fs.doc('master/' + name).get().then(function (s) { return s.exists ? s.data() : null; }, function () { return null; }); }
   };
 })();

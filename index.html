@@ -7,7 +7,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script src="config/firebase-config.js"></script>
 <script src="firebase-shim.js"></script>
 
@@ -252,7 +251,7 @@ th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;le
     </div>
     <div class="card" id="fbMasterCard">
       <h2 class="sec-title">Consumer master data</h2>
-      <p class="note">The consumer lookup (names, addresses, substations, outstanding) is stored privately in Firebase Storage and only approved users can read it. To refresh it, select all files from the master data folder Claude prepares (a0.json … sublabels.json) and upload.</p>
+      <p class="note">The consumer lookup (names, addresses, substations, outstanding) is stored privately in the Firebase database and only approved users can read it. To refresh it, select all files from the master data folder Claude prepares (a0.json … sublabels.json) and upload.</p>
       <input id="fbMasterFiles" type="file" accept=".json" multiple>
       <button class="btn" type="button" id="fbMasterUp">Upload master data</button>
       <div class="note" id="fbMasterMsg"></div>
@@ -1188,7 +1187,7 @@ renderWho();
     const bad=fl.filter(f=>!/^(a\d+|s\d+|idx2|sublabels|ref|worklists)\.json$/.test(f.name)); if(bad.length){ m('These files are not master data files: '+bad.slice(0,5).map(f=>f.name).join(', ')); return; }
     $('fbMasterUp').disabled=true; let done=0; const total=fl.reduce((t,f)=>t+f.size,0); let sent=0;
     try{ let i=0; const run=async()=>{ while(i<fl.length){ const f=fl[i++]; let last=0; await FB.uploadMaster(f,p=>{ sent+=(p*f.size-last); last=p*f.size; m(`Uploading… ${Math.round(sent*100/total)}% (${done}/${fl.length} files)`); }); done++; } };
-      await Promise.all([run(),run(),run(),run()]); m(`Uploaded ${done} files. Staff get the new data next time they open the site.`); }
+      await Promise.all([run(),run()]); m(`Uploaded ${done} files. Staff get the new data next time they open the site.`); }
     catch(e){ m('Upload stopped ('+(e.code||e.message)+'). Select the files again and retry.'); }
     finally{ $('fbMasterUp').disabled=false; } });
 })();

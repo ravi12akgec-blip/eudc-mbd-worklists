@@ -4,7 +4,7 @@ Field app for EUDC Moradabad staff to record the **result of visit** against wor
 
 - Hosted free on **GitHub Pages** (this repository holds only code and settings, no consumer data).
 - **Google sign-in**; the office approves each new account once.
-- Lists and actions are saved in **Firebase Firestore**; the consumer master (names, addresses, outstanding) is in **Firebase Storage**, readable only by approved users.
+- Lists and actions are saved in **Firebase Firestore**; the consumer master (names, addresses, outstanding) is also kept in Firestore, readable only by approved users. Everything runs on Firebase's free Spark plan.
 
 ---
 
@@ -44,31 +44,19 @@ Office records → **Upload a work list** → choose the Excel/CSV → check the
    Then **Settings → Authorized domains → Add domain →** `ravi12akgec-blip.github.io`.
 3. **Build → Firestore Database → Create database** (production mode, region `asia-south1` Mumbai).
    Open the **Rules** tab, paste the contents of `firestore.rules` from this repo, **Publish**.
-4. **Build → Storage → Get started** (needs the Blaze pay-as-you-go plan; normal use stays inside the free quota).
-   Open the **Rules** tab, paste `storage.rules`, **Publish**.
-5. **Project settings (⚙) → Your apps → Add app → Web (</>)** → name it *worklists* → copy the `firebaseConfig` values.
+4. **Project settings (⚙) → Your apps → Add app → Web (</>)** → name it *worklists* → copy the `firebaseConfig` values.
    In this repo open `config/firebase-config.js` → ✏️ → paste the values → **Commit**.
 
-### 2. Allow the site to read the master data files (one command)
-Firebase Storage needs a CORS setting so the website can download files. In the Google Cloud Shell (console.cloud.google.com → the `>_` icon, project eudc-mbd-console) run:
-```bash
-cat > cors.json <<'EOF'
-[{"origin":["*"],"method":["GET"],"maxAgeSeconds":3600}]
-EOF
-gsutil cors set cors.json gs://eudc-mbd-console.firebasestorage.app
-```
-(Use your bucket name from Storage if it differs.)
-
-### 3. Turn on GitHub Pages
+### 2. Turn on GitHub Pages
 Repository **Settings → Pages → Build and deployment → Source: Deploy from a branch → Branch: `main` / `(root)` → Save.**
 Your site will be at `https://ravi12akgec-blip.github.io/eudc-mbd-worklists/`.
 
-### 4. Make yourself admin (first time only)
+### 3. Make yourself admin (first time only)
 1. Open the site and **Sign in with Google**. You will see *Waiting for approval*.
 2. Firebase console → **Firestore Database → users** → open your document → set `status` = `approved` and `role` = `admin` → Update.
 3. Reload the site. You now see **Office records**, where you approve everyone else.
 
-### 5. Upload the consumer master data
+### 4. Upload the consumer master data
 Office records → **Consumer master data** → select **all** files from the master data folder Claude prepared (`a0.json` … `a96.json`, `s0.json` …, `idx2.json`, `sublabels.json`, `ref.json`, `worklists.json`) → **Upload master data**. Repeat whenever Claude prepares a refreshed master.
 
 ---
@@ -77,10 +65,9 @@ Office records → **Consumer master data** → select **all** files from the ma
 | File | Purpose |
 |---|---|
 | `index.html` | The app |
-| `firebase-shim.js` | Connects the app to Firebase (sign-in, database, storage) |
+| `firebase-shim.js` | Connects the app to Firebase (sign-in, database) |
 | `config/results.json` | Result of visit options – **edit this on GitHub** |
 | `config/firebase-config.js` | Your Firebase web app settings |
-| `firestore.rules`, `storage.rules` | Security rules to paste into Firebase |
-| `cors.json` | Storage download setting (step 2) |
+| `firestore.rules` | Security rules to paste into Firebase |
 
 Roles: **staff** (work lists only), **office** (plus Office records), **admin** (same as office; cannot be blocked by others).
