@@ -1,10 +1,10 @@
-/* Paste your Firebase web app settings here (Firebase console → Project settings → Your apps → Web app → SDK setup → Config).
-   These values are meant to be public; access is protected by the Firestore and Storage rules in this repository. */
+// Firebase web app settings for project eudc-mbd-console.
+// These values are public by design; access is controlled by firestore.rules and office approval.
 window.FIREBASE_CONFIG = {
-  apiKey: "PASTE_API_KEY",
+  apiKey: "AIzaSyA18wunCXn86naDWXp_FACtoYSsIftEzK8",
   authDomain: "eudc-mbd-console.firebaseapp.com",
   projectId: "eudc-mbd-console",
   storageBucket: "eudc-mbd-console.firebasestorage.app",
-  messagingSenderId: "PASTE_SENDER_ID",
-  appId: "PASTE_APP_ID"
+  messagingSenderId: "145669629377",
+  appId: "1:145669629377:web:61df87f2f250aafdf63b40"
 };
