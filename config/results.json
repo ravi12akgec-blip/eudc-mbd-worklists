@@ -1,0 +1,28 @@
+{
+  "_help": "Result of visit options shown to staff. Edit on GitHub and commit; the site updates in about a minute. type: pay = asks amount + receipt; promise = asks a date (days = default days ahead); dispute = asks case/complaint no.; other_source = asks the other account ID; plain = nothing extra. Keep option names unique.",
+  "groups": [
+    { "label": "Payment", "options": [
+      { "name": "Paid (full)", "type": "pay" },
+      { "name": "Part paid", "type": "pay" },
+      { "name": "Promised to pay within a week", "type": "promise", "days": 7 },
+      { "name": "Promised to pay (later date)", "type": "promise" },
+      { "name": "Refused to pay", "type": "plain" }
+    ]},
+    { "label": "Dispute / defect", "options": [
+      { "name": "Court case", "type": "dispute", "caseLabel": "Court case number" },
+      { "name": "Bill defective", "type": "dispute" },
+      { "name": "Meter display defective", "type": "dispute" },
+      { "name": "Meter burnt / faulty", "type": "dispute" },
+      { "name": "Meter bypass / theft suspected", "type": "dispute" },
+      { "name": "Theft case", "type": "dispute", "caseLabel": "Theft case / FIR / assessment number" }
+    ]},
+    { "label": "Site", "options": [
+      { "name": "Premises locked", "type": "plain" },
+      { "name": "Consumer not found / house vacant", "type": "plain" },
+      { "name": "Disconnected at site (TD done)", "type": "plain" },
+      { "name": "Already permanently disconnected", "type": "plain" },
+      { "name": "Supply from other source", "type": "other_source" },
+      { "name": "Other", "type": "plain" }
+    ]}
+  ]
+}

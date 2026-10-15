@@ -1,0 +1,37 @@
+rules_version = '2';
+// EUDC MBD Work Lists — Firestore security rules.
+// Paste into Firebase console → Firestore Database → Rules → Publish.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function me() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function approved() { return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && me().status == 'approved'; }
+    function office() { return approved() && me().role in ['admin', 'office']; }
+
+    // One document per Google account. New accounts start as pending staff; only office/admin can approve or change role.
+    match /users/{uid} {
+      allow read: if (signedIn() && request.auth.uid == uid) || office();
+      allow create: if signedIn() && request.auth.uid == uid
+                    && request.resource.data.status == 'pending' && request.resource.data.role == 'staff';
+      allow update: if office()
+                    || (signedIn() && request.auth.uid == uid
+                        && request.resource.data.status == resource.data.status
+                        && request.resource.data.role == resource.data.role);
+      allow delete: if office();
+    }
+    // Uploaded work lists: approved users read, office uploads/edits.
+    match /worklists/{rest=**} {
+      allow read: if approved();
+      allow write: if office();
+    }
+    // Actions saved by staff (one document per account).
+    match /entries/{acct} {
+      allow read: if approved();
+      allow write: if approved();
+    }
+    match /staff/{rest=**} {
+      allow read: if approved();
+      allow write: if office();
+    }
+  }
+}

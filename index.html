@@ -1,0 +1,1197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>EUDC MBD Work Lists</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230d5c56'/%3E%3Cpath d='M9 22l5-12 4 8 2-4 3 8' stroke='%23e0a020' stroke-width='2.5' fill='none'/%3E%3C/svg%3E">
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
+<script src="config/firebase-config.js"></script>
+<script src="firebase-shim.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: single-column field form, mobile-first; sticky header with tabs; cards only for the consumer panel and the form sections */
+:root{
+  --bg:#f3f5f4; --surface:#ffffff; --ink:#15211f; --muted:#5b6a67; --line:#d7dedc;
+  --brand:#0d5c56; --brand-ink:#ffffff; --accent:#e0a020; --accent-soft:#fbefd2;
+  --ok:#1f7a3f; --ok-soft:#dff1e5; --warn:#a15c00; --warn-soft:#fdebd3; --bad:#b3261e; --bad-soft:#fbe1df;
+  --field:#fbfcfc;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1716; --surface:#172221; --ink:#e4ecea; --muted:#9aaba7; --line:#2b3a38;
+  --brand:#3fb3a8; --brand-ink:#06201d; --accent:#f0b840; --accent-soft:#3a2f14;
+  --ok:#6fd393; --ok-soft:#173523; --warn:#f2b35c; --warn-soft:#3b2a12; --bad:#ff8a80; --bad-soft:#3d1b19; --field:#121c1b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1716; --surface:#172221; --ink:#e4ecea; --muted:#9aaba7; --line:#2b3a38;
+  --brand:#3fb3a8; --brand-ink:#06201d; --accent:#f0b840; --accent-soft:#3a2f14;
+  --ok:#6fd393; --ok-soft:#173523; --warn:#f2b35c; --warn-soft:#3b2a12; --bad:#ff8a80; --bad-soft:#3d1b19; --field:#121c1b; color-scheme:dark}
+*{box-sizing:border-box} [hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--brand);color:var(--brand-ink)}
+.hwrap{max-width:760px;margin:0 auto;padding:10px 16px 0;display:flex;flex-direction:column;gap:6px}
+.brandrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--f-display);font-size:24px;letter-spacing:.02em;margin:0;text-transform:uppercase}
+.who{font-size:13px;opacity:.9;background:none;border:1px solid currentColor;color:inherit;border-radius:999px;padding:3px 10px;cursor:pointer;font-family:inherit}
+nav{display:flex;gap:2px}
+nav button{flex:1;background:none;border:0;color:inherit;opacity:.75;font-family:var(--f-display);font-size:16px;letter-spacing:.04em;text-transform:uppercase;padding:8px 4px 10px;border-bottom:3px solid transparent;cursor:pointer}
+nav button[aria-selected="true"]{opacity:1;border-bottom-color:var(--accent)}
+main{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:14px 60px;display:flex;flex-direction:column;gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.sec-title{font-family:var(--f-display);font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0}
+label{font-weight:600;font-size:13px;display:flex;flex-direction:column;gap:4px;min-width:0}
+label small{font-weight:400;color:var(--muted)}
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:10px 11px;width:100%;min-width:0}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.grid2{grid-template-columns:1fr}}
+.row{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
+.row>input{flex:1 1 180px}
+.btn{font:inherit;font-weight:700;font-size:15px;border-radius:8px;padding:10px 16px;border:1px solid var(--brand);background:var(--brand);color:var(--brand-ink);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--brand)}
+.btn.accent{background:var(--accent);border-color:var(--accent);color:#1b1404}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.big{width:100%;padding:14px;font-size:17px}
+.mono{font-family:var(--f-mono);font-size:13px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.cname{font-size:19px;font-weight:700;margin:0}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--line);color:var(--ink)}
+.chip.ok{background:var(--ok-soft);color:var(--ok)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.bad{background:var(--bad-soft);color:var(--bad)} .chip.acc{background:var(--accent-soft);color:var(--warn)}
+.note{font-size:13px;color:var(--muted);margin:0}
+.msg{border-radius:8px;padding:10px 12px;font-size:14px}
+.msg.ok{background:var(--ok-soft);color:var(--ok)} .msg.bad{background:var(--bad-soft);color:var(--bad)} .msg.warn{background:var(--warn-soft);color:var(--warn)}
+.gps{display:flex;flex-direction:column;gap:8px;border:1px dashed var(--line);border-radius:8px;padding:10px}
+.gpsval{font-family:var(--f-mono);font-size:14px}
+a{color:var(--brand)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.lnk{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;text-decoration:none;border:1px solid var(--brand);color:var(--brand);border-radius:8px;padding:8px 12px;background:transparent;cursor:pointer;font-family:inherit}
+.lnk.solid{background:var(--brand);color:var(--brand-ink)}
+.ctx{background:var(--accent-soft);color:var(--ink);border-radius:8px;padding:8px 10px;font-size:13px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.li .r{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
+.wlrow{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.colchk{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:13px;font-weight:500;flex-direction:row;cursor:pointer}
+.colchk input{width:auto}
+.wtab td{white-space:normal;min-width:90px;vertical-align:top}.wtab tr{cursor:pointer}.wtab tr:hover td{background:var(--bg)}
+main.wide{max-width:1320px}
+.wtab{font-size:12.5px}.wtab td{padding:6px 7px}
+.slc{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer}
+.slc[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+#abBody tr{cursor:pointer}#abBody tr.sel td{background:var(--accent-soft)}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;width:120px}.bar i{display:block;height:100%;background:var(--ok)}
+.list{display:flex;flex-direction:column}
+.li{display:flex;justify-content:space-between;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line);cursor:pointer;background:none;border-left:0;border-right:0;border-top:0;color:inherit;font:inherit;text-align:left;width:100%}
+.li:hover{background:var(--bg)}
+.li .l{min-width:0;display:flex;flex-direction:column}
+.li .l span:last-child{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px}
+.stat b{display:block;font-family:var(--f-display);font-size:26px;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;z-index:20;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.namelist{max-height:46vh;overflow-y:auto;border:1px solid var(--line);border-radius:8px;-webkit-overflow-scrolling:touch}
+.namelist button{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;font:inherit;font-size:15px;padding:12px;border:0;border-bottom:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.namelist button[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink)}
+.dialog{background:var(--surface);color:var(--ink);border-radius:12px;padding:18px;max-width:420px;width:100%;display:flex;flex-direction:column;gap:12px}
+@media (prefers-reduced-motion:no-preference){.card{animation:none}}
+</style>
+</head>
+<body>
+
+
+<header>
+  <div class="hwrap">
+    <div class="brandrow">
+      <h1>EUDC MBD Work Lists</h1>
+      <button class="who" id="whoBtn" type="button">Set your name</button>
+    </div>
+    <nav role="tablist">
+      <button role="tab" id="tab-survey" aria-selected="true" data-tab="survey">Survey</button>
+      <button role="tab" id="tab-lists" aria-selected="false" data-tab="lists">Work lists</button>
+      <button role="tab" id="tab-records" aria-selected="false" data-tab="records" hidden>Office records</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div id="accessBanner" class="msg warn" hidden></div>
+  <!-- SURVEY -->
+  <section id="view-survey" style="display:flex;flex-direction:column;gap:14px">
+    <div id="backBar" hidden class="row" style="align-items:center;justify-content:space-between"><button class="lnk solid" type="button" id="backBtn">← Back to list</button><span class="note" id="backInfo"></span></div>
+    <div class="card">
+      <form id="searchForm" class="row" autocomplete="off">
+        <input id="acctInput" inputmode="numeric" placeholder="Enter Account ID (e.g. 4162673000)" aria-label="Account ID">
+        <button class="btn" type="submit">Find</button>
+      </form>
+      <div id="sugBox" class="namelist" hidden style="max-height:none"></div>
+      <p class="note" id="searchNote">Type the 10-digit account ID from the bill, or pick one from Work lists.</p>
+    </div>
+
+    <div id="consumer" class="card" hidden></div>
+
+    <form id="surveyForm" hidden autocomplete="off" style="display:flex;flex-direction:column;gap:14px">
+      <div class="card" id="actionCard">
+        <h2 class="sec-title">Action taken</h2>
+        <div class="ctx" id="actCtx" hidden></div>
+        <label for="actSel">Result of visit
+          <select id="actSel"><option value="">Select result</option></select></label>
+        <div class="grid2" id="actAmtWrap" hidden>
+          <label for="actAmt">Amount paid (Rs)<input id="actAmt" inputmode="decimal" placeholder="e.g. 5000"></label>
+          <label for="actRcpt">Receipt / transaction no.<input id="actRcpt" placeholder="optional"></label>
+        </div>
+        <label for="actDate" id="actDateWrap" hidden>Promised payment date<input id="actDate" type="date"></label>
+        <label for="actCase" id="actCaseWrap" hidden><span id="actCaseLbl">Case / complaint number</span> <small>if known</small><input id="actCase" placeholder="optional"></label>
+        <label for="actOther" id="actOtherWrap" hidden>Other source account ID <small>the connection actually supplying this premises</small><input id="actOther" inputmode="numeric" placeholder="e.g. 4162673000"></label>
+        <p class="note" id="actOtherInfo" hidden></p>
+        <p class="note">Choose a result when you visited for recovery. Network details below are optional when a result is chosen.</p>
+      </div>
+
+      <div class="card" id="networkCard">
+        <h2 class="sec-title">Network</h2>
+        <label for="divSel">Division<select id="divSel"></select></label>
+        <label for="subSel">Substation <small>only the selected division's substations are listed</small>
+          <select id="subSel"></select></label>
+        <label for="feedSel">Outgoing feeder
+          <select id="feedSel"></select></label>
+        <label for="feedOther" id="feedOtherWrap" hidden>Feeder name (not in list)
+          <input id="feedOther" placeholder="Write feeder name as at site"></label>
+        <div class="grid2">
+          <label for="dtIn">DT number / name <small>if available</small>
+            <input id="dtIn" placeholder="e.g. A0110 / Near Hanuman Mandir"></label>
+          <label for="poleIn">Pole number <small>if available</small>
+            <input id="poleIn" placeholder="e.g. 533"></label>
+        </div>
+      </div>
+
+      <div class="card" id="locCard">
+        <h2 class="sec-title">Site location</h2>
+        <div class="gps">
+          <button class="btn accent" type="button" id="gpsBtn">Take GPS location</button>
+          <div class="gpsval" id="gpsVal">No location yet</div>
+          <p class="note" id="gpsNote">Stand at the meter / service point before taking the location.</p>
+          <label for="coordPaste">Or paste coordinates <small>from Google Maps or any GPS app, e.g. 28.8386, 78.7733</small>
+            <input id="coordPaste" placeholder="28.8386, 78.7733" inputmode="decimal"></label>
+        </div>
+      </div>
+
+      <div class="card" id="contactCard">
+        <h2 class="sec-title" id="contactTitle">Consumer contact</h2>
+        <div class="grid2" id="mobGrid">
+          <label for="mobIn">Mobile number <small>10 digits</small>
+            <input id="mobIn" inputmode="numeric" maxlength="10" placeholder="98XXXXXXXX"></label>
+          <label for="mob2In">Alternate mobile <small>optional</small>
+            <input id="mob2In" inputmode="numeric" maxlength="10" placeholder="optional"></label>
+        </div>
+        <label for="siteSel" id="siteWrap">Site status
+          <select id="siteSel">
+            <option value="">Select</option>
+            <option>Consumer met at site</option>
+            <option>Premises locked</option>
+            <option>Consumer not found at address</option>
+            <option>Meter found at site</option>
+            <option>Meter not found / removed</option>
+            <option>Supply found connected (TD case)</option>
+            <option>Other</option>
+          </select></label>
+        <label for="remIn">Remarks
+          <textarea id="remIn" rows="2" placeholder="Anything else the office should know"></textarea></label>
+      </div>
+
+      <div id="saveMsg" hidden></div>
+      <button class="btn big" type="submit" id="saveBtn">Save</button>
+      <button class="btn big ghost" type="button" id="backBtn2" hidden>← Back to list</button>
+    </form>
+
+    <div class="card" id="myRecentCard" hidden>
+      <h2 class="sec-title">My surveys</h2><p class="note" id="myNote">Only you and the office can see these.</p>
+      <div id="queueBox" class="msg warn" hidden></div>
+      <div class="list" id="myRecent"></div>
+    </div>
+  </section>
+
+  <!-- WORK LISTS -->
+  <section id="view-lists" hidden style="flex-direction:column;gap:14px">
+    <div class="card">
+      <label for="wlSel">List
+        <select id="wlSel"></select></label>
+      <label for="wlDiv">Division<select id="wlDiv"><option value="">All divisions</option></select></label>
+      <div class="grid2">
+        <label for="wlSub">Substation <small>updated from Master</small>
+          <select id="wlSub"></select></label>
+        <label for="wlFdr">Feeder <small>updated from Master</small>
+          <select id="wlFdr"></select></label>
+        <label for="wlFilter">Show
+          <select id="wlFilter"><option value="all">All accounts</option><option value="pending">Not yet actioned by me</option><option value="done">Actioned by me</option></select></label>
+        <label for="wlView">View
+          <select id="wlView"><option value="cards">Cards (phone)</option><option value="table">Table</option></select></label>
+      </div>
+      <label for="wlSearch">Search in list<input id="wlSearch" placeholder="Account, name, address or mobile"></label>
+      <p class="note" id="wlNote"></p>
+    </div>
+    <div class="card"><div class="list" id="wlItems"><p class="note">Loading lists…</p></div><button class="btn ghost" type="button" id="wlMore" hidden>Show more</button></div>
+  </section>
+
+  <!-- RECORDS -->
+  <section id="view-records" hidden style="flex-direction:column;gap:14px">
+    <div class="card" id="fbUsersCard">
+      <h2 class="sec-title">Users (Google sign-in)</h2>
+      <p class="note">Everyone signs in with Google. New accounts wait here until you approve them. <b>Office</b> and <b>Admin</b> see Office records; <b>Staff</b> see work lists only.</p>
+      <div id="fbUsers"><p class="note">Loading users…</p></div>
+      <div class="row"><button class="btn ghost" type="button" id="fbOutBtn">Sign out of this phone</button></div>
+    </div>
+    <div class="card" id="fbMasterCard">
+      <h2 class="sec-title">Consumer master data</h2>
+      <p class="note">The consumer lookup (names, addresses, substations, outstanding) is stored privately in Firebase Storage and only approved users can read it. To refresh it, select all files from the master data folder Claude prepares (a0.json … sublabels.json) and upload.</p>
+      <input id="fbMasterFiles" type="file" accept=".json" multiple>
+      <button class="btn" type="button" id="fbMasterUp">Upload master data</button>
+      <div class="note" id="fbMasterMsg"></div>
+    </div>
+    <div class="card" id="staffCard" hidden>
+      <h2 class="sec-title">Staff &amp; secure login</h2>
+      <p class="note">Staff sign-in is switched off for now: staff just enter their name and designation once on their phone. This staff list is kept for later.</p>
+      <div id="reqBox" class="gps"><b style="font-size:14px">Import entries sent by staff</b><span class="note">Phones that can only view this page keep entries on the phone. The staff member taps "Download my entries" and sends you the file (for example on WhatsApp). Import it here to add those entries to the records.</span>
+        <input id="impFile" type="file" accept=".csv"><button class="btn ghost" type="button" id="impBtn">Import entries</button><span class="note" id="impMsg"></span></div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Name</th><th>Role</th><th>Reports to</th><th>Substations</th><th>Password</th><th></th></tr></thead>
+        <tbody id="staffBody"><tr><td colspan="6">Loading staff…</td></tr></tbody>
+      </table></div>
+      <details id="staffFormBox"><summary style="cursor:pointer;font-weight:700">Add or edit staff</summary>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+          <input type="hidden" id="sfId">
+          <div class="grid2">
+            <label for="sfName">Name<input id="sfName" placeholder="e.g. Shri Rakesh Kumar"></label>
+            <label for="sfRole">Role<select id="sfRole"><option>EE</option><option>AE</option><option>JE</option><option selected>TG-2</option><option>Lineman</option><option>Meter reader</option><option>Office staff</option><option>Other</option></select></label>
+          </div>
+          <label for="sfParent">Reports to<select id="sfParent"></select></label>
+          <div><b style="font-size:13px">Substations</b> <small class="note">(JE/AE/EE also see their team's substations automatically)</small><div id="sfSubs" class="chips" style="margin-top:6px"></div></div>
+          <div class="row"><button class="btn" type="button" id="sfSave">Save staff</button><button class="btn ghost" type="button" id="sfClear">Clear form</button></div>
+          <div class="note" id="sfMsg"></div>
+        </div>
+      </details>
+    </div>
+    <div class="card" id="upCard">
+      <h2 class="sec-title">Upload a work list</h2>
+      <p class="note">Any Excel or CSV list (still disconnected, defaulters, TD, etc.). Every account ID is matched with the Master and the list is updated with the Master substation, feeder, name, address, tariff, load, mobile and GPS.</p>
+      <div class="grid2">
+        <label for="upName">List name<input id="upName" placeholder="e.g. Still disconnected 17-Sep"></label>
+        <label for="upFile">File<input id="upFile" type="file" accept=".xlsx,.xls,.csv"></label>
+      </div>
+      <div id="upCfg" hidden style="display:flex;flex-direction:column;gap:10px">
+        <div class="grid2">
+          <label for="upSheet">Sheet<select id="upSheet"></select></label>
+          <label for="upAcct">Account ID column<select id="upAcct"></select></label>
+        </div>
+        <div><b style="font-size:13px">Columns from the file to show with each account</b> <small class="note">(up to 4)</small>
+          <div id="upCols" class="chips" style="margin-top:6px"></div></div>
+        <p class="note" id="upPrev"></p>
+      </div>
+      <button class="btn" type="button" id="upBtn">Match with Master and upload</button>
+      <div id="upMsg" class="note"></div>
+      <h2 class="sec-title" style="margin-top:6px">Manage work lists</h2>
+      <p class="note">Turn a list off to remove it from staff Work lists; turn it on to bring it back. Deleting an uploaded list removes it permanently. Actions already saved by staff are always kept.</p>
+      <div id="upLists"><p class="note">Loading lists…</p></div>
+    </div>
+    <div class="card" id="prgCard">
+      <h2 class="sec-title">Substation-wise progress</h2>
+      <div class="row">
+        <select id="prgSel" aria-label="Work list" style="flex:1 1 240px"></select>
+        <button class="btn ghost" type="button" id="prgDl">Download summary</button>
+        <button class="btn" type="button" id="prgList">Download list with Master details</button>
+      </div>
+      <p class="note" id="prgNote">Pick a work list to see accounts and actions by Master substation.</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Substation</th><th>Accounts</th><th>Actioned</th><th>Pending</th><th>Done %</th><th>Paid / part</th><th>Rs collected</th><th>Promised</th><th>Dispute / theft</th><th>Other source</th><th>Locked / not found</th></tr></thead>
+        <tbody id="prgBody"><tr><td colspan="11">No list selected.</td></tr></tbody>
+      </table></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="stTotal">–</b><span>Accounts surveyed</span></div>
+      <div class="stat"><b id="stToday">–</b><span>Saved today</span></div>
+      <div class="stat"><b id="stGps">–</b><span>With GPS</span></div>
+      <div class="stat"><b id="stPaid">–</b><span>Paid / part paid</span></div>
+      <div class="stat"><b id="stProm">–</b><span>Promised</span></div>
+      <div class="stat"><b id="stDisp">–</b><span>Dispute / defect</span></div>
+    </div>
+    <div class="card" id="abCard">
+      <h2 class="sec-title">Action abstract by work list</h2>
+      <div><span class="note">Work list</span><div id="abLists" class="chips" style="margin-top:6px"></div></div>
+      <div class="grid2">
+        <label for="abSub">Substation<select id="abSub"><option value="">All substations</option></select></label>
+        <label for="abStaff">Staff<select id="abStaff"><option value="">All staff</option></select></label>
+      </div>
+      <div><span class="note">Period</span><div id="abPeriod" class="chips" style="margin-top:6px">
+        <button type="button" class="slc" data-p="all" aria-pressed="true">All time</button><button type="button" class="slc" data-p="today" aria-pressed="false">Today</button><button type="button" class="slc" data-p="7" aria-pressed="false">Last 7 days</button><button type="button" class="slc" data-p="30" aria-pressed="false">Last 30 days</button></div></div>
+      <p class="note" id="abNote"></p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Result of visit</th><th>Accounts</th><th>Share</th><th>Rs collected</th></tr></thead>
+        <tbody id="abBody"><tr><td colspan="4">Pick a work list.</td></tr></tbody>
+      </table></div>
+      <p class="note">Tap a result to see its accounts below. Tap it again to show all.</p>
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <b id="abDetTitle">Accounts</b>
+        <button class="btn" type="button" id="abDl">Download action list (CSV)</button>
+      </div>
+      <div class="tablewrap"><table class="wtab">
+        <thead><tr><th>#</th><th>Account</th><th>Consumer</th><th>Substation</th><th>Feeder</th><th>Result</th><th>Amount / date / case</th><th>Remarks</th><th>By</th><th>When</th><th>Map</th></tr></thead>
+        <tbody id="abDet"><tr><td colspan="11">—</td></tr></tbody>
+      </table></div>
+      <button class="btn ghost" type="button" id="abMore" hidden>Show more</button>
+    </div>
+    <div class="card">
+      <div class="row">
+        <select id="recSub" aria-label="Filter by substation" style="flex:1 1 200px"></select>
+        <select id="recAct" aria-label="Filter by action" style="flex:1 1 200px"><option value="">All actions</option></select>
+        <button class="btn ghost" type="button" id="refBtn">Refresh</button>
+        <button class="btn" type="button" id="dlBtn">Download all (CSV)</button>
+      </div>
+      <div id="recMsg" class="note">Office only. Field staff cannot open this tab or read each other's surveys.</div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>When</th><th>Account</th><th>Consumer</th><th>Action</th><th>List</th><th>Substation</th><th>Feeder</th><th>DT</th><th>Pole</th><th>Mobile</th><th>GPS</th><th>By</th></tr></thead>
+        <tbody id="recBody"><tr><td colspan="12">No surveys saved yet. Entries appear here as staff save them from the Survey tab.</td></tr></tbody>
+      </table></div>
+    </div>
+  </section>
+</main>
+
+<div class="overlay" id="loginDlg" hidden>
+  <div class="dialog">
+    <h2 class="sec-title" style="color:var(--ink)">Staff sign-in</h2>
+    <div id="loginForm" style="display:flex;flex-direction:column;gap:10px">
+      <label for="loginSearch">Find your name<input id="loginSearch" placeholder="Type first name, e.g. Tanishak" autocomplete="off"></label>
+      <div class="namelist" id="loginList" role="listbox" aria-label="Staff names"><p class="note" style="padding:10px">Loading staff list…</p></div>
+      <label for="loginPin">Password <small>default 1234</small><input id="loginPin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="••••"></label>
+      <div class="row"><button class="btn" type="button" id="loginGo">Sign in</button><button class="btn ghost" type="button" id="loginClose">Close</button></div>
+    </div>
+    <div id="loginIn" hidden style="display:flex;flex-direction:column;gap:10px">
+      <p id="loginInfo" class="msg ok"></p>
+      <details><summary style="cursor:pointer;font-weight:700">Change password</summary>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+          <input id="pin1" type="password" inputmode="numeric" placeholder="New password (4 or more digits)">
+          <input id="pin2" type="password" inputmode="numeric" placeholder="Repeat new password">
+          <button class="btn ghost" type="button" id="pinSave">Save new password</button>
+        </div></details>
+      <div class="row"><button class="btn ghost" type="button" id="loginOut">Sign out</button><button class="btn" type="button" id="loginClose2">Close</button></div>
+    </div>
+    <div id="loginMsg" class="msg warn" hidden></div>
+  </div>
+</div>
+<div class="overlay" id="whoDlg" hidden>
+  <form class="dialog" id="whoForm">
+    <h2 class="sec-title" style="color:var(--ink)">Who is surveying?</h2>
+    <label for="whoName">Your name<input id="whoName" required placeholder="e.g. Amit Kumar"></label>
+    <label for="whoDesig">Designation<select id="whoDesig">
+      <option>TG-2</option><option>Lineman</option><option>JE</option><option>AE</option><option>Meter reader</option><option>Office staff</option><option>Other</option></select></label>
+    <p class="note">Saved on this phone and attached to every survey you save.</p>
+    <button class="btn" type="submit">Continue</button>
+  </form>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const MODE='action';
+(function applyMode(){
+  if(MODE==='geo'){
+    ['actionCard','backBar','upCard','prgCard','abCard','tab-lists','view-lists','stPaid','stProm','stDisp','staffCard'].forEach(id=>{ const el=$(id); if(!el) return; (el.classList.contains('stat')||el.closest('.stat')? (el.closest('.stat')||el) : el).hidden=true; });
+    $('tab-survey').textContent='Geo tagging'; $('saveBtn').textContent='Save geo tagging';
+    $('searchNote').textContent='Type the 10-digit account ID from the bill to geo-tag the connection.';
+  } else {
+    ['networkCard','locCard','mobGrid','siteWrap','stGps'].forEach(id=>{ const el=$(id); if(!el) return; (el.closest('.stat')||el).hidden=true; });
+    $('contactTitle').textContent='Remarks'; const st=$('stTotal'); if(st&&st.nextElementSibling) st.nextElementSibling.textContent='Accounts actioned'; $('tab-survey').textContent='Account'; $('saveBtn').textContent='Save action';
+    $('searchNote').textContent='Pick an account from Work lists, or type the account ID to record an action.';
+  }
+})();
+const N=97, STAT=['','In Service','TD','TD >6 MONTHS','TD Migrated','COT','PD Initiated'];
+const DIVN={D:'EUDD-Delhi Road MBD',C:'EUDD-Civil Lines MBD',K:'EUDD-Katghar MBD'};
+let REF=null, shards={}, cur=null, gps=null, db=null, user=null, uid=null;
+const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let me=ls.get('srv_me',null);
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+function showTab(t){
+  document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
+  ['survey','lists','records'].forEach(v=>{const el=$('view-'+v); el.hidden=v!==t; if(v===t) el.style.display='flex';});
+  document.querySelector('main').classList.toggle('wide', (t==='lists' && $('wlView').value==='table') || t==='records');
+  if(t==='lists') loadLists(); if(t==='records') startRecords();
+}
+
+/* ---------- staff identity ---------- */
+let staffRec=null, myProfile=null, STAFF={}, idReady=false, isOwnerFlag=false, canEditFlag=false, canWrite=null, loginPick='';
+const OFFICE_ROLES=['EE','AE','Office staff'];
+function renderWho(){ const b=$('whoBtn');
+  if(!idReady){ b.textContent='Loading…'; return; }
+  b.textContent = me ? (me.name+' · '+me.desig) : 'Set your name'; }
+$('whoBtn').addEventListener('click',()=>{ if(me){$('whoName').value=me.name;$('whoDesig').value=me.desig;} $('whoDlg').hidden=false; $('whoName').focus(); });
+async function loadStaff(){ if(!db) return STAFF; try{ const ss=(await db.collection('staff').get()).docs; STAFF=Object.fromEntries(ss.map(d=>[d.id,{id:d.id,...d.data()}])); }catch(e){} return STAFF; }
+function staffLabel(x){ return x.name+' ('+x.role+')'; }
+async function sha(t){ try{ const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''); }catch(e){ return 'plain:'+t; } }
+const pinHash=(id,pin)=>sha('eudc-mbd:'+id+':'+pin);
+const staffSort=(a,b)=>{ const o=['EE','AE','JE','TG-2']; return ((o.indexOf(a.role)+1||9)-(o.indexOf(b.role)+1||9))||a.name.localeCompare(b.name); };
+function bare(n){ return String(n||'').replace(/^(shri|sh\.|smt\.?|sri|mr\.?|ms\.?)\s+/i,'').trim(); }
+function renderLoginList(){ const q=$('loginSearch').value.trim().toLowerCase();
+  const list=Object.values(STAFF).filter(x=>x.active!==false).filter(x=>!q||bare(x.name).toLowerCase().includes(q)||x.name.toLowerCase().includes(q)).sort(staffSort);
+  $('loginList').innerHTML = list.length ? list.map(x=>`<button type="button" data-sid="${esc(x.id)}" aria-pressed="${x.id===loginPick}"><span>${esc(x.name)}</span><span class="note" style="color:inherit">${esc(x.role)}</span></button>`).join('') : '<p class="note" style="padding:10px">'+(Object.keys(STAFF).length?'No name matches. Check the spelling.':'Staff list could not load on this phone. Open the link in the Claude app and try again.')+'</p>'; }
+async function openLogin(){
+  $('loginDlg').hidden=false; const lm=$('loginMsg'); lm.hidden=true;
+  $('loginForm').hidden=!!staffRec; $('loginIn').hidden=!staffRec;
+  if(staffRec){ $('loginInfo').textContent='Signed in as '+staffRec.name+' ('+staffRec.role+')'+(staffRec.subs&&staffRec.subs.length?' · '+staffRec.subs.length+' substations':''); return; }
+  if(!db){ lm.hidden=false; lm.className='msg bad'; lm.textContent='This view cannot load the staff list. Open the link in the Claude app (or claude.ai) while signed in to any Claude account.'; $('loginList').innerHTML=''; return; }
+  await loadStaff(); renderLoginList(); setTimeout(()=>$('loginSearch').focus(),50);
+}
+$('loginSearch').addEventListener('input',renderLoginList);
+$('loginList').addEventListener('click',e=>{ const b=e.target.closest('[data-sid]'); if(!b) return; loginPick=b.dataset.sid; renderLoginList(); $('loginPin').focus(); });
+$('loginClose').addEventListener('click',()=>{ $('loginDlg').hidden=true; }); $('loginClose2').addEventListener('click',()=>{ $('loginDlg').hidden=true; });
+async function doLogin(){ const lm=$('loginMsg'); lm.hidden=false; lm.className='msg bad';
+  const x=STAFF[loginPick]; if(!x){ lm.textContent='Tap your name in the list first.'; return; }
+  const pin=$('loginPin').value.trim(); if(!pin){ lm.textContent='Enter your password (default 1234).'; return; }
+  const ok = x.pwHash ? (await pinHash(x.id,pin))===x.pwHash : pin==='1234';
+  if(!ok){ lm.textContent='Wrong password. Try again, or ask the office to reset it to 1234.'; return; }
+  const ch=chainOf(x.id); staffRec={staffId:x.id,name:x.name,role:x.role,subs:teamSubs(x.id),je:x.role==='JE'?x.name:ch.je,ae:x.role==='AE'?x.name:ch.ae};
+  ls.set('srv_sess',staffRec); $('loginPin').value=''; lm.hidden=true;
+  applySession(); $('loginDlg').hidden=true;
+  if(!x.pwHash){ setTimeout(()=>{ showAccess('<b>You are using the default password 1234.</b> Tap your name at the top, then "Change password", to set your own.'); },300); }
+}
+$('loginGo').addEventListener('click',doLogin); $('loginPin').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+$('loginOut').addEventListener('click',()=>{ staffRec=null; try{ localStorage.removeItem('srv_sess'); }catch(e){} loginPick=''; applySession(); openLogin(); });
+$('pinSave').addEventListener('click',async()=>{ const lm=$('loginMsg'); lm.hidden=false; const a=$('pin1').value.trim(), b=$('pin2').value.trim();
+  if(!/^\d{4,8}$/.test(a)){ lm.className='msg bad'; lm.textContent='Use 4 to 8 digits.'; return; } if(a!==b){ lm.className='msg bad'; lm.textContent='The two passwords do not match.'; return; }
+  try{ await db.doc('staff/'+staffRec.staffId).update({pwHash:await pinHash(staffRec.staffId,a), pwSetAt:new Date().toISOString()}); lm.className='msg ok'; lm.textContent='Password changed. Use the new one next time.'; $('pin1').value=''; $('pin2').value=''; }
+  catch(e){ lm.className='msg bad'; lm.textContent='This phone cannot change the password (view-only access). Ask the office to set it for you.'; } });
+function applySession(){ isOffice = isOwnerFlag || canEditFlag; $('tab-records').hidden=!isOffice; renderWho(); loadMine(); if(!$('view-lists').hidden) fillWlSub(); }
+$('whoForm').addEventListener('submit',e=>{e.preventDefault(); const n=$('whoName').value.trim(); if(!n) return; me={name:n,desig:$('whoDesig').value}; ls.set('srv_me',me); $('whoDlg').hidden=true; renderWho(); loadMine();});
+renderWho();
+
+/* ---------- reference data ---------- */
+const refP=fetch('data/ref.json').then(r=>r.json()).then(j=>{REF=j; fillSubs(); return j;}).catch(()=>{$('searchNote').textContent='Could not load the substation list. Reload the page.';});
+const DIVLAB={'EUDD I MORADABAD':'EUDD I – Delhi Road','EUDD II MORADABAD':'EUDD II – Civil Lines','EUDD III MORADABAD':'EUDD III – Katghar'};
+const DIVOF={D:'EUDD I MORADABAD',C:'EUDD II MORADABAD',K:'EUDD III MORADABAD'};
+const subDiv=label=>{ const x=REF&&REF.subs.find(s=>s[0]===label); return x?x[1]:''; };
+function fillDivs(){ const ds=[...new Set(REF.subs.map(s=>s[1]))].sort(); const keep=$('divSel').value;
+  $('divSel').innerHTML='<option value="">Select division</option>'+ds.map(d=>`<option value="${esc(d)}">${esc(DIVLAB[d]||d)}</option>`).join(''); $('divSel').value=keep; }
+function fillSubOpts(keepSub){ const d=$('divSel').value, sel=$('subSel');
+  sel.innerHTML='<option value="">'+(d?'Select substation':'Select division first')+'</option>'+REF.subs.map((s,i)=>[i,s]).filter(([i,s])=>s[1]===d).map(([i,s])=>`<option value="${i}">${esc(s[0])}</option>`).join('')+'<option value="other">Other (not in list)</option>';
+  if(keepSub!=null && [...sel.options].some(o=>o.value===String(keepSub))) sel.value=String(keepSub); }
+$('divSel').addEventListener('change',()=>{ fillSubOpts(''); fillFeeders('',''); });
+function fillSubs(){
+  fillDivs(); fillSubOpts('');
+  const rs=$('recSub'); rs.innerHTML='<option value="">All substations</option>'+REF.subs.map(s=>`<option>${esc(s[0])}</option>`).join('');
+}
+function fillFeeders(si,selected){
+  const fs=$('feedSel'); fs.innerHTML='<option value="">Select feeder</option>';
+  if(si!=='' && si!=='other') REF.feeders.forEach((f,i)=>{ if(f[0]===+si){const o=document.createElement('option'); o.value=i; o.textContent=f[1]; fs.appendChild(o);} });
+  const o=document.createElement('option'); o.value='other'; o.textContent='Other / not in list'; fs.appendChild(o);
+  fs.value = selected!=null && selected!=='' ? String(selected) : '';
+  $('feedOtherWrap').hidden = fs.value!=='other';
+}
+$('subSel').addEventListener('change',()=>fillFeeders($('subSel').value,''));
+$('feedSel').addEventListener('change',()=>{$('feedOtherWrap').hidden=$('feedSel').value!=='other';});
+
+/* ---------- lookup ---------- */
+function pad10(a){ a=String(a); return a.length<10? a.padStart(10,'0') : a; }
+function shardOf(a){ return Number(BigInt(a)%97n); }
+async function getShard(k){ if(!shards[k]) shards[k]=fetch('data/a'+k+'.json').then(r=>{if(!r.ok) throw 0; return r.json();}).then(arr=>{const m=new Map(); arr.forEach(r=>m.set(r[0],r)); return m;}); return shards[k]; }
+async function findAcct(a){ a=String(a).replace(/\D/g,''); if(!a) return null; a=pad10(a); try{ const m=await getShard(shardOf(a)); return m.get(a)||null; }catch(e){ return undefined; } }
+$('searchForm').addEventListener('submit',async e=>{ e.preventDefault(); $('sugBox').hidden=true; backState=null; showBack(false); openAcct($('acctInput').value); });
+// ---- suggestions after 5 digits
+let sugTok=0;
+$('acctInput').addEventListener('focus',()=>{ loadIdx().catch(()=>{}); },{once:true});
+$('acctInput').addEventListener('input',async()=>{
+  const v=$('acctInput').value.replace(/\D/g,''), box=$('sugBox'); const tk=++sugTok;
+  if(v.length<5){ box.hidden=true; return; }
+  let IX; try{ IX=await loadIdx(); }catch(e){ box.hidden=true; return; } if(tk!==sugTok) return;
+  // accounts are 10 digits (leading zeros kept); prefix v covers [v·10^k , (v+1)·10^k − 1]
+  const k=Math.max(0,10-v.length), lo=+v*Math.pow(10,k), hi=(+v+1)*Math.pow(10,k)-1;
+  let a=0,b=IX.n; while(a<b){ const m=(a+b)>>1; if(IX.acc[m]<lo) a=m+1; else b=m; } const start=a;
+  a=start; b=IX.n; while(a<b){ const m=(a+b)>>1; if(IX.acc[m]<=hi) a=m+1; else b=m; } const end=a;
+  const cnt=end-start;
+  if(!cnt){ box.hidden=false; box.innerHTML='<p class="note" style="padding:10px">No account starts with '+esc(v)+'. Check the number.</p>'; return; }
+  const top=[]; for(let i=start;i<end&&top.length<6;i++) top.push(i);
+  const ids=top.map(i=>String(IX.acc[i]).padStart(10,'0'));
+  const head=`<p class="note" style="padding:8px 12px;margin:0">${cnt.toLocaleString('en-IN')} account${cnt>1?'s':''} match${cnt>6?' · showing first 6, keep typing to narrow':''}</p>`;
+  const row=(id,i,c)=>`<button type="button" data-sug="${id}"><span style="display:flex;flex-direction:column;min-width:0"><span><span class="mono">${id}</span> ${c?esc(c[2]||''):''}</span><span class="note" style="color:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c?esc(c[3]||''):'Loading…'}</span></span><span class="note" style="color:inherit;text-align:right">${esc(IX.sub(top[i]))}</span></button>`;
+  box.hidden=false; box.innerHTML=head+ids.map((id,i)=>row(id,i,null)).join('');
+  const recs=await Promise.all(ids.map(id=>findAcct(id).catch(()=>null))); if(tk!==sugTok) return;
+  box.innerHTML=head+ids.map((id,i)=>row(id,i,recs[i])).join('');
+});
+$('sugBox').addEventListener('click',e=>{ const b=e.target.closest('[data-sug]'); if(!b) return; $('acctInput').value=b.dataset.sug; $('sugBox').hidden=true; backState=null; showBack(false); openAcct(b.dataset.sug); });
+document.addEventListener('click',e=>{ if(!e.target.closest('#sugBox')&&e.target.id!=='acctInput') $('sugBox').hidden=true; });
+
+async function openAcct(a){
+  a=String(a).replace(/\D/g,''); if(a.length>=6) a=pad10(a);
+  if(a.length<6){ $('searchNote').textContent='Enter the full account ID (digits only).'; return; }
+  showTab('survey'); $('acctInput').value=a;
+  if(!ctx || ctx.acct!==a) ctx = pendingCtx && pendingCtx.acct===a ? pendingCtx : null; pendingCtx=null;
+  $('searchNote').textContent='Searching…';
+  await refP;
+  const r=await findAcct(a);
+  if(r===undefined){ $('searchNote').textContent='Could not load account data. Check the network and try again.'; return; }
+  if(!r){ $('searchNote').textContent='Account '+a+' is not in the Sep-2026 master list (permanently disconnected and rejected connections are not included). Check the number.'; $('consumer').hidden=true; $('surveyForm').hidden=true; return; }
+  $('searchNote').textContent='Found. Check the details, then fill the survey below.';
+  cur={acct:r[0],tariff:r[1],load:r[16]||'',name:r[2],addr:r[3],div:r[4],status:r[5],si:r[6],fi:r[7],rawSub:r[8],rawFeed:r[9],dt:r[10],pole:r[11],mob:r[12],smart:r[13],lat:r[14]||null,lon:r[15]||null,out:r[17],lpd:r[18]||'',lpa:r[19],osrc:r[20]||''};
+  renderConsumer(null);
+  resetForm();
+  await ready;
+  let prevD=myAct.get(cur.acct)||null;
+  if(!prevD && db && canWrite!==false){ try{ const s=await db.doc('entries/'+cur.acct).get(); if(s.exists) prevD=s.data(); }catch(e){} }
+  if(prevD && cur && prevD.acct===cur.acct){ renderConsumer(prevD); prefill(prevD); }
+}
+function renderConsumer(prev){
+  const c=cur; const st=c.status||'Status not recorded';
+  const stCls = st==='In Service'?'ok': (st.startsWith('TD')||st==='PD')?'bad':'warn';
+  const subName = c.si>=0? REF.subs[c.si][0] : (c.rawSub||'Not recorded');
+  const feedName = c.fi>=0? REF.feeders[c.fi][1] : (c.rawFeed||'Not recorded');
+  $('consumer').innerHTML=`
+    <div class="chips"><span class="chip ${stCls}">${esc(st)}</span>${c.smart?'<span class="chip acc">Smart meter</span>':''}<span class="chip">${esc(DIVN[c.div]||'')}</span></div>
+    <p class="cname">${esc(c.name||'Name not recorded')}</p>
+    <dl class="kv">
+      <dt>Account</dt><dd class="mono">${esc(c.acct)}</dd>
+      <dt>Tariff</dt><dd>${esc(c.tariff||'—')}</dd>
+      <dt>Load</dt><dd>${esc(c.load||'—')}</dd>
+      <dt>Address</dt><dd>${esc(c.addr||'—')}</dd>
+      <dt>Master substation</dt><dd>${esc(subName)}</dd>
+      <dt>Master feeder</dt><dd>${esc(feedName)}</dd>
+      <dt>Master DT / pole</dt><dd>${esc(c.dt||'—')} / ${esc(c.pole||'—')}</dd>
+      <dt>Total outstanding</dt><dd><b>${c.out==null?'—':'Rs '+inr(c.out)}</b>${c.out!=null?` <span class="note">(${c.osrc==='B'?'Billed 08-Oct':'Master Sep-26'})</span>`:''}</dd>
+      <dt>Last payment</dt><dd>${c.lpd?esc(c.lpd)+(c.lpa!=null?' · Rs '+inr(c.lpa):''):'No payment on record'}</dd>
+      <dt>Mobile on record</dt><dd class="mono">${c.mob?`<a href="tel:${esc(c.mob)}">${esc(c.mob)}</a>`:'None'}</dd>
+      <dt>Master GPS</dt><dd class="mono">${c.lat?`${c.lat.toFixed(6)}, ${c.lon.toFixed(6)}`:'<span style="font-family:var(--f-body)">Not in Master. Take GPS at site so the next visit can navigate.</span>'}</dd>
+    </dl>
+    <div class="actions">
+      ${c.lat?`<a class="lnk solid" href="${navUrl(c.lat,c.lon)}" target="_blank" rel="noopener">Navigate (Google Maps)</a>`:`<a class="lnk" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((c.addr||'')+' Moradabad')}" target="_blank" rel="noopener">Search address in Maps</a>`}
+      ${prev&&prev.lat!=null?`<a class="lnk" href="${navUrl(prev.lat,prev.lon)}" target="_blank" rel="noopener">Navigate to surveyed point</a>`:''}
+    </div>
+    ${prev?`<div class="msg warn">Last saved ${esc(fmtTime(prev.updatedAt))}${prev.byName?' by '+esc(prev.byName):''}${prev.action?' ('+esc(prev.action)+')':''}. Saving again will update it.</div>`:''}`;
+  $('actCtx').hidden=!ctx; if(ctx) $('actCtx').innerHTML=`<span>Work list: <b>${esc(ctx.listName)}</b>${ctx.info?' · '+esc(ctx.info):''}</span>`;
+  $('consumer').hidden=false; $('surveyForm').hidden=false; $('surveyForm').style.display='flex';
+}
+function resetForm(){
+  $('divSel').value = cur.si>=0 ? REF.subs[cur.si][1] : (DIVOF[cur.div]||'');
+  fillSubOpts(cur.si>=0? String(cur.si):'');
+  fillFeeders($('subSel').value, cur.fi>=0 && REF.feeders[cur.fi][0]===cur.si ? cur.fi : '');
+  $('feedOther').value=''; $('dtIn').value=cur.dt||''; $('poleIn').value=cur.pole||'';
+  $('mobIn').value=cur.mob||''; $('mob2In').value=''; $('siteSel').value=''; $('remIn').value=''; $('coordPaste').value='';
+  gps=null; showGps(); $('saveMsg').hidden=true;
+  $('actSel').value=''; $('actAmt').value=''; $('actRcpt').value=''; $('actDate').value=''; $('actCase').value=''; $('actOther').value=''; $('actOtherInfo').hidden=true; actUI();
+}
+function prefill(d){
+  if(d.subIdx!=null && d.subIdx>=0){ $('divSel').value=REF.subs[d.subIdx][1]; fillSubOpts(String(d.subIdx)); } else if(d.substation){ $('subSel').value='other'; }
+  fillFeeders($('subSel').value, d.feederIdx!=null && d.feederIdx>=0 ? d.feederIdx : (d.feeder?'other':''));
+  if($('feedSel').value==='other') $('feedOther').value=d.feeder||'';
+  $('dtIn').value=d.dt||''; $('poleIn').value=d.pole||''; $('mobIn').value=d.mobile||''; $('mob2In').value=d.mobile2||'';
+  $('siteSel').value=d.siteStatus||''; $('remIn').value=d.remarks||'';
+  if(d.lat!=null){ gps={lat:d.lat,lon:d.lon,acc:d.accuracy,src:d.gpsSource||'saved',at:d.gpsAt}; showGps(); }
+  $('actSel').value=d.action||''; $('actAmt').value=d.actAmount||''; $('actRcpt').value=d.actReceipt||''; $('actDate').value=d.actDate||''; $('actCase').value=d.actCase||''; $('actOther').value=d.actOtherAcct||''; actUI();
+}
+function inr(n){ const x=+n; if(!isFinite(x)) return '—'; return x.toLocaleString('en-IN',{maximumFractionDigits:2}); }
+function navUrl(lat,lon){ return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=driving`; }
+let PAY=[], PROM=[], DISP=[], OTHERS=[], ORDER=[], RESOPT={};
+const DEFAULT_RESULTS={groups:[{label:'Payment',options:[{name:'Paid (full)',type:'pay'},{name:'Part paid',type:'pay'},{name:'Promised to pay within a week',type:'promise',days:7},{name:'Promised to pay (later date)',type:'promise'},{name:'Refused to pay',type:'plain'}]},{label:'Dispute / defect',options:[{name:'Court case',type:'dispute'},{name:'Bill defective',type:'dispute'},{name:'Meter display defective',type:'dispute'},{name:'Meter burnt / faulty',type:'dispute'},{name:'Meter bypass / theft suspected',type:'dispute'},{name:'Theft case',type:'dispute'}]},{label:'Site',options:[{name:'Premises locked',type:'plain'},{name:'Consumer not found / house vacant',type:'plain'},{name:'Disconnected at site (TD done)',type:'plain'},{name:'Already permanently disconnected',type:'plain'},{name:'Supply from other source',type:'other_source'},{name:'Other',type:'plain'}]}]};
+function applyResults(cfg){ const g=(cfg&&cfg.groups&&cfg.groups.length)?cfg.groups:DEFAULT_RESULTS.groups; PAY=[];PROM=[];DISP=[];OTHERS=[];ORDER=[];RESOPT={};
+  const keep=$('actSel').value; let html='<option value="">Select result</option>';
+  g.forEach(grp=>{ html+=`<optgroup label="${esc(grp.label||'')}">`; (grp.options||[]).forEach(o=>{ if(!o||!o.name) return; RESOPT[o.name]=o; ORDER.push(o.name);
+    if(o.type==='pay') PAY.push(o.name); else if(o.type==='promise') PROM.push(o.name); else if(o.type==='dispute') DISP.push(o.name); else if(o.type==='other_source') OTHERS.push(o.name);
+    html+=`<option>${esc(o.name)}</option>`; }); html+='</optgroup>'; });
+  $('actSel').innerHTML=html; if(keep) $('actSel').value=keep; }
+applyResults(null);
+fetch('config/results.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{ if(j) applyResults(j); }).catch(()=>{});
+function actUI(){
+  const v=$('actSel').value;
+  $('actAmtWrap').hidden=!PAY.includes(v); $('actDateWrap').hidden=!PROM.includes(v); $('actCaseWrap').hidden=!DISP.includes(v);
+  $('actCaseLbl').textContent = (RESOPT[v]&&RESOPT[v].caseLabel) || 'Case / complaint number';
+  $('actOtherWrap').hidden = !OTHERS.includes(v); if(!OTHERS.includes(v)){ $('actOtherInfo').hidden=true; }
+  if(PROM.includes(v) && RESOPT[v] && RESOPT[v].days && !$('actDate').value){ const d=new Date(Date.now()+RESOPT[v].days*864e5); $('actDate').value=d.toISOString().slice(0,10); }
+}
+$('actSel').addEventListener('change',actUI);
+let otherTok=0;
+$('actOther').addEventListener('input',async()=>{ const el=$('actOther'); el.value=el.value.replace(/\D/g,''); const v=el.value, info=$('actOtherInfo');
+  if(v.length<8){ info.hidden=true; return; } const t=++otherTok; const r=await findAcct(v); if(t!==otherTok) return;
+  info.hidden=false; info.textContent = r ? `Found: ${r[2]||'Name not recorded'} · ${r[3]||''} · ${r[5]||''}${r[6]>=0?' · '+REF.subs[r[6]][0]:''}` : 'This account is not in the Master list. Check the number.'; });
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-copy]'); if(!b) return; const t=b.dataset.copy; const done=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy mobile',1500)};
+  try{ navigator.clipboard.writeText(t).then(done,()=>{b.textContent=t}); }catch(err){ b.textContent=t; } });
+
+/* ---------- GPS ---------- */
+function showGps(){
+  if(!gps){ $('gpsVal').textContent='No location yet'; return; }
+  const u=`https://www.google.com/maps?q=${gps.lat},${gps.lon}`;
+  $('gpsVal').innerHTML=`${gps.lat.toFixed(6)}, ${gps.lon.toFixed(6)}${gps.acc?` · ±${Math.round(gps.acc)} m`:''} · <a href="${u}" target="_blank" rel="noopener">Open in Maps</a> · <a href="${navUrl(gps.lat,gps.lon)}" target="_blank" rel="noopener">Navigate</a>`;
+}
+$('gpsBtn').addEventListener('click',()=>{
+  if(!navigator.geolocation){ $('gpsNote').textContent='This phone view cannot share location. Paste the coordinates below instead.'; return; }
+  $('gpsBtn').disabled=true; $('gpsNote').textContent='Getting location… keep the phone in the open sky if possible.';
+  navigator.geolocation.getCurrentPosition(p=>{
+    gps={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy,src:'device GPS',at:new Date().toISOString()};
+    showGps(); $('gpsBtn').disabled=false; $('gpsNote').textContent = p.coords.accuracy>50?'Accuracy is low. Wait a few seconds and take it again.':'Location captured.';
+  },err=>{
+    $('gpsBtn').disabled=false;
+    $('gpsNote').textContent='Location was not shared here ('+(err.code===1?'permission blocked':'not available')+'). Open Google Maps, long-press your blue dot, copy the numbers and paste them below.';
+  },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+});
+$('coordPaste').addEventListener('input',()=>{
+  const m=$('coordPaste').value.match(/(-?\d{1,2}\.\d{3,})\s*[, ]\s*(-?\d{1,3}\.\d{3,})/);
+  if(m){ const lat=+m[1], lon=+m[2]; if(lat>20&&lat<35&&lon>70&&lon<90){ gps={lat,lon,acc:null,src:'pasted',at:new Date().toISOString()}; showGps(); $('gpsNote').textContent='Coordinates taken from the pasted text.'; } else $('gpsNote').textContent='Those coordinates are outside Uttar Pradesh. Check the numbers.'; }
+});
+
+/* ---------- save ---------- */
+const MOB=/^[6-9]\d{9}$/;
+$('surveyForm').addEventListener('submit',async e=>{
+  e.preventDefault(); if(!cur) return;
+  const msg=(t,c)=>{$('saveMsg').className='msg '+c; $('saveMsg').textContent=t; $('saveMsg').hidden=false;};
+  if(!me){ msg('Enter your name first (tap "Set your name" at the top).','bad'); $('whoDlg').hidden=false; return; }
+  const who = {name:me.name, desig:me.desig, staffKey:'n:'+me.name.trim().toLowerCase()};
+  const sv=$('subSel').value, fv=$('feedSel').value;
+  const act=$('actSel').value;
+  if(MODE==='action' && !act){ msg('Choose the result of visit under Action taken.','bad'); return; }
+  if(MODE==='geo' && !$('divSel').value && sv!=='other'){ msg('Select the division.','bad'); return; }
+  if(MODE==='geo' && !sv){ msg('Select the substation.','bad'); return; }
+  if(MODE==='geo' && !fv){ msg('Select the feeder, or choose "Other / not in list".','bad'); return; }
+  if(PAY.includes(act) && !(+$('actAmt').value>0)){ msg('Enter the amount paid.','bad'); return; }
+  if(PROM.includes(act) && !$('actDate').value){ msg('Enter the promised payment date.','bad'); return; }
+  if(OTHERS.includes(act) && $('actOther').value && $('actOther').value.length<8){ msg('Other source account ID looks too short. Check the number.','bad'); return; }
+  if(OTHERS.includes(act) && $('actOther').value===$('acctInput').value){ msg('Other source account ID cannot be the same account.','bad'); return; }
+  if(MODE==='geo' && fv==='other' && !$('feedOther').value.trim()){ msg('Write the feeder name.','bad'); return; }
+  const mob=MODE==='geo'?$('mobIn').value.trim():'', mob2=MODE==='geo'?$('mob2In').value.trim():'';
+  if(mob && !MOB.test(mob)){ msg('Mobile number must be 10 digits starting with 6, 7, 8 or 9.','bad'); return; }
+  if(mob2 && !MOB.test(mob2)){ msg('Alternate mobile must be 10 digits starting with 6, 7, 8 or 9.','bad'); return; }
+  await ready;
+  const subIdx= (sv===''||sv==='other')?-1:+sv, feederIdx= (fv===''||fv==='other')?-1:+fv;
+  const now=new Date().toISOString();
+  const rec={acct:cur.acct,tariff:cur.tariff||'',load:cur.load||'',name:cur.name||'',division:DIVN[cur.div]||'',conStatus:cur.status||'',
+    subIdx, selDivision: $('divSel').value?(DIVLAB[$('divSel').value]||$('divSel').value):'', substation: subIdx>=0?REF.subs[subIdx][0]:(sv==='other'?'Other':''), feederIdx, feeder: feederIdx>=0?REF.feeders[feederIdx][1]:(fv==='other'?$('feedOther').value.trim():''),
+    masterSubstation: cur.si>=0?REF.subs[cur.si][0]:(cur.rawSub||''), masterFeeder: cur.fi>=0?REF.feeders[cur.fi][1]:(cur.rawFeed||''),
+    dt:$('dtIn').value.trim(), pole:$('poleIn').value.trim(), mobile:mob, mobile2:mob2,
+    lat: gps?+gps.lat.toFixed(6):null, lon: gps?+gps.lon.toFixed(6):null, accuracy: gps&&gps.acc?Math.round(gps.acc):null, gpsSource: gps?gps.src:'', gpsAt: gps?gps.at:'',
+    siteStatus:$('siteSel').value, remarks:$('remIn').value.trim(), staffKey:who.staffKey,
+    action:act, actAmount: PAY.includes(act)? +(+$('actAmt').value).toFixed(2):null, actReceipt: PAY.includes(act)?$('actRcpt').value.trim():'', actDate: PROM.includes(act)?$('actDate').value:'', actCase: DISP.includes(act)?$('actCase').value.trim():'', actOtherAcct: OTHERS.includes(act)?$('actOther').value.trim():'',
+    listId: ctx?ctx.listId:'', listName: ctx?ctx.listName:'', masterLat: cur.lat, masterLon: cur.lon, byName:who.name, byDesig:who.desig, byId:uid||'', staffJe:staffRec?staffRec.je||'':'', updatedAt:now};
+  $('saveBtn').disabled=true;
+  try{
+    if(!db || canWrite===false) throw {code:'no_write'};
+    const ref=db.doc('entries/'+cur.acct);
+    let hist=[]; try{ const s=await ref.get(); if(s.exists){ const d=s.data(); hist=(d.history||[]).slice(0,4); const {history,...prev}=d; hist.unshift({updatedAt:prev.updatedAt,byName:prev.byName,substation:prev.substation,feeder:prev.feeder,dt:prev.dt,pole:prev.pole,mobile:prev.mobile,lat:prev.lat,lon:prev.lon,action:prev.action||'',actAmount:prev.actAmount??null,actDate:prev.actDate||'',listName:prev.listName||''}); } }catch(e){}
+    rec.history=hist.slice(0,5);
+    await ref.set(rec);
+    myAct.set(rec.acct,rec); myDocs=[rec].concat(myDocs.filter(d=>d.acct!==rec.acct)); renderMine();
+    msg('Saved for account '+cur.acct+(act?' · '+act:'')+'.','ok');
+  }catch(err){
+    const c=err&&err.code;
+    if(c==='quota_exceeded'){ msg('The survey store is full. Tell the office so old records can be exported and cleared.','bad'); }
+    else { // keep on this phone
+      if(c==='invalid_argument') canWrite=false;
+      rec.queuedAt=now; const q=getQueue().filter(x=>x.acct!==rec.acct); q.unshift(rec); setQueue(q);
+      myAct.set(rec.acct,rec); myDocs=[rec].concat(myDocs.filter(d=>d.acct!==rec.acct)); renderMine();
+      msg('Saved on this phone for account '+cur.acct+(act?' · '+act:'')+'. '+(canWrite===false||!db?'This phone cannot send to the office directly: use "Download my entries" under My surveys and send the file to the office.':'It will be sent when the connection is back (tap "Send now" under My surveys).'),'warn');
+      showAccess(); }
+  }finally{ $('saveBtn').disabled=false; }
+});
+let myDocs=[], staffSaved=null, myAct=new Map(), ctx=null, pendingCtx=null;
+function chipCls(a){ return PAY.includes(a)?'ok':PROM.includes(a)?'acc':(DISP.includes(a)||OTHERS.includes(a))?'bad':'warn'; }
+function getQueue(){ return ls.get('srv_queue',[]); } function setQueue(q){ ls.set('srv_queue',q); }
+async function loadMine(){
+  const key=me?'n:'+me.name.trim().toLowerCase():null; let remote=[];
+  if(db && key && canWrite!==false){ try{ remote=(await db.collection('entries').where('staffKey','==',key).limit(1000).get()).docs.map(d=>d.data()); }catch(e){} }
+  const q=getQueue().filter(r=>!key||r.staffKey===key); const mp=new Map();
+  remote.concat(q).forEach(r=>{ const o=mp.get(r.acct); if(!o||(r.updatedAt||'')>(o.updatedAt||'')) mp.set(r.acct,r); });
+  myDocs=[...mp.values()].sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||'')); myAct=new Map(myDocs.map(d=>[d.acct,d])); renderMine(); if(!$('view-lists').hidden) renderWl();
+}
+function renderMine(){
+  const q=getQueue();
+  $('myRecentCard').hidden=!myDocs.length && !q.length;
+  const today=new Date().toISOString().slice(0,10);
+  $('myNote').textContent=myDocs.length+' saved, '+myDocs.filter(d=>(d.updatedAt||'').slice(0,10)===today).length+' today.';
+  $('queueBox').hidden=!q.length;
+  if(q.length) $('queueBox').innerHTML=`<b>${q.length} ${q.length===1?'entry is':'entries are'} kept on this phone and not yet with the office.</b><div class="row" style="margin-top:8px"><button class="lnk solid" type="button" id="qDl">Download my entries</button>${db&&canWrite!==false?'<button class="lnk" type="button" id="qSend">Send now</button>':''}</div><span class="note">Send the downloaded file to the office (WhatsApp is fine). The office imports it in Office records.</span>`;
+  $('myRecent').innerHTML=myDocs.slice(0,30).map(x=>`<button class="li" type="button" data-a="${esc(x.acct)}"><span class="l"><span class="mono">${esc(x.acct)}</span><span>${esc(x.name||'')}</span></span><span class="r">${x.action?`<span class="chip ${chipCls(x.action)}">${esc(x.action)}</span>`:''}${x.queuedAt&&q.some(r=>r.acct===x.acct)?'<span class="chip warn">On phone</span>':''}<span class="note">${esc(fmtTime(x.updatedAt))}</span></span></button>`).join('');
+}
+const b64e=t=>btoa(unescape(encodeURIComponent(t))), b64d=t=>decodeURIComponent(escape(atob(t)));
+$('queueBox').addEventListener('click',async e=>{
+  if(e.target.id==='qDl'){ const q=getQueue(); if(!q.length) return; const dl=await claude.use('downloads'); if(!dl){ $('queueBox').insertAdjacentHTML('beforeend','<div class="note">Download is not available in this view.</div>'); return; }
+    const head=['Account ID','Consumer','Result','Amount','Promise date','Case / other source','Substation','Feeder','DT','Pole','Mobile','Latitude','Longitude','Remarks','By','Saved at','_rec'];
+    const qq=v=>{ v=v==null?'':String(v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+    const csv=[head.join(',')].concat(q.map(r=>[r.acct,r.name,r.action,r.actAmount??'',r.actDate,r.actCase||r.actOtherAcct||'',r.substation,r.feeder,r.dt,r.pole,r.mobile,r.lat??'',r.lon??'',r.remarks,r.byName,r.updatedAt,b64e(JSON.stringify(r))].map(qq).join(','))).join('\r\n');
+    const who=(staffRec?staffRec.name:'staff').replace(/[^A-Za-z0-9]+/g,'_');
+    try{ await dl.save({filename:'Survey_entries_'+who+'_'+new Date().toISOString().slice(0,16).replace(/[-:T]/g,'')+'.csv',data:new Blob(['﻿'+csv],{type:'text/csv'})}); }catch(err){} }
+  if(e.target.id==='qSend'){ const q=getQueue(); let sent=0, left=[];
+    for(const r of q){ try{ const {queuedAt,...rec}=r; await db.doc('entries/'+r.acct).set(rec); sent++; }catch(err){ left.push(r); if(err&&err.code==='invalid_argument'){ canWrite=false; } } }
+    setQueue(left); renderMine(); showAccess(left.length?`<b>${sent} sent, ${left.length} still on this phone.</b> ${canWrite===false?'This phone has view-only access: use Download my entries.':'Try again later.'}`:`<b>${sent} entries sent to the office.</b>`); }
+});
+$('myRecent').addEventListener('click',e=>{const b=e.target.closest('[data-a]'); if(b) openAcct(b.dataset.a);});
+
+/* ---------- work lists ---------- */
+let WL=null, upMeta=[], wlCache={}, hiddenBuiltin=new Set(), removedBuiltin=new Set(), cfgExists=false;
+// row object: {a,sub,fdr,nm,ad,tf,ld,mb,la,lo,info}
+function unpackV3(d){ return d.r.map(x=>({a:x[0],sub:d.g[x[1]]||'Not in Master',fdr:d.f[x[2]]||'',nm:x[3]||'',ad:x[4]||'',tf:x[5]||'',ld:x[6]||'',mb:x[7]||'',la:x[8]||0,lo:x[9]||0,info:x[10]||''})); }
+function groupRows(rows){ const g={}; rows.forEach(r=>{ (g[r.sub]=g[r.sub]||[]).push(r); }); return g; }
+async function loadLists(){
+  if(!WL){ try{ const j=await (await fetch('data/worklists.json')).json(); WL={}; Object.entries(j).forEach(([k,d],i)=>{ WL['b'+i]={id:'b'+i,name:k,builtin:true,groups:groupRows(unpackV3(d))}; }); }catch(e){ WL={}; } }
+  await ready;
+  if(db){ try{ const all=(await db.collection('worklists').get()).docs.map(d=>({id:d.id,...d.data()}));
+    const cfg=all.find(d=>d.id==='_config'); hiddenBuiltin=new Set((cfg&&cfg.hiddenBuiltin)||[]); removedBuiltin=new Set((cfg&&cfg.removedBuiltin)||[]); cfgExists=!!cfg;
+    upMeta=all.filter(d=>d.id!=='_config').sort((x,y)=>(y.createdAt||'').localeCompare(x.createdAt||'')); }catch(e){ upMeta=[]; } }
+  const opts=upMeta.filter(m=>!m.hidden).map(m=>`<option value="u:${esc(m.id)}">${esc(m.name)} (${m.count})</option>`).join('') + Object.values(WL).filter(w=>!hiddenBuiltin.has(w.name)&&!removedBuiltin.has(w.name)).map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('');
+  const keep=$('wlSel').value; $('wlSel').innerHTML=opts||'<option value="">No lists</option>'; if(keep && [...$('wlSel').options].some(o=>o.value===keep)) $('wlSel').value=keep;
+  await fillWlSub();
+}
+async function getList(v){
+  if(!v) return null;
+  if(!v.startsWith('u:')) return WL[v];
+  const id=v.slice(2); if(wlCache[id]) return wlCache[id];
+  const meta=upMeta.find(m=>m.id===id); if(!meta) return null; let rows=[];
+  const snaps=await Promise.all(Array.from({length:meta.parts||1},(_,k)=>db.doc('worklists/'+id+'/parts/p'+k).get()));
+  snaps.forEach(s=>{ if(!s.exists) return; const d=s.data();
+    if(d.v===3) rows=rows.concat(unpackV3(d));
+    else if(d.v===4) d.r.forEach(x=>rows.push({a:x[0],sub:d.g[x[1]]||'Not in Master',fdr:d.f[x[2]]||'',info:x[3]||''}));
+    else if(d.v===2) d.r.forEach(x=>rows.push({a:x[0],sub:d.g[x[1]]||'Not in Master',fdr:'',info:x[2]||''}));
+    else (d.rows||[]).forEach(x=>rows.push({a:x[0],sub:x[1]||'Not in Master',fdr:'',info:x[2]||''})); });
+  return wlCache[id]={id:'u:'+id,listId:id,name:meta.name,groups:groupRows(rows),cols:meta.cols||[]};
+}
+const subSort=(a,b)=>(a==='Not in Master')-(b==='Not in Master')||a.localeCompare(b);
+async function fillWlSub(){ const L=await getList($('wlSel').value); if(!L){ $('wlSub').innerHTML=''; $('wlFdr').innerHTML=''; $('wlItems').innerHTML='<p class="note">No work lists yet.</p>'; return; }
+  const dv=$('wlDiv').value, dk=$('wlDiv').value;
+  const allKs=Object.keys(L.groups); const dset=[...new Set(allKs.map(k=>subDiv(k)||'Other'))].sort();
+  $('wlDiv').innerHTML='<option value="">All divisions</option>'+dset.map(d=>`<option value="${esc(d)}">${esc(DIVLAB[d]||(d==='Other'?'Other / not in energy account':d))}</option>`).join(''); if(dset.includes(dk)) $('wlDiv').value=dk;
+  const ks=allKs.filter(k=>!$('wlDiv').value||(subDiv(k)||'Other')===$('wlDiv').value).sort(subSort); const keep=$('wlSub').value;
+  const mine=staffRec&&staffRec.subs.length? ks.filter(k=>staffRec.subs.includes(k)) : [];
+  const mineN=mine.reduce((t,k)=>t+L.groups[k].length,0);
+  $('wlSub').innerHTML=(mine.length?`<option value="*mine">My substations (${mineN})</option>`:'')+(ks.length>1?'<option value="*">All substations</option>':'')+ks.map(s=>`<option value="${esc(s)}">${mine.includes(s)?'★ ':''}${esc(s)} (${L.groups[s].length})</option>`).join('');
+  if(keep && [...$('wlSub').options].some(o=>o.value===keep)) $('wlSub').value=keep; else if(mine.length) $('wlSub').value='*mine'; fillWlFdr(L); }
+function subRows(L){ const g=$('wlSub').value, dv=$('wlDiv').value; if((g==='*'||!g) && dv) return Object.entries(L.groups).filter(([k])=>(subDiv(k)||'Other')===dv).flatMap(([,v])=>v); if(g==='*mine') return Object.entries(L.groups).filter(([k])=>staffRec&&staffRec.subs.includes(k)).flatMap(([,v])=>v); return g==='*'||!g ? Object.values(L.groups).flat() : (L.groups[g]||[]); }
+function fillWlFdr(L){ const cnt={}; subRows(L).forEach(r=>{ const f=r.fdr||'Feeder not in Master'; cnt[f]=(cnt[f]||0)+1; }); const keep=$('wlFdr').value;
+  $('wlFdr').innerHTML='<option value="*">All feeders</option>'+Object.keys(cnt).sort().map(f=>`<option value="${esc(f)}">${esc(f)} (${cnt[f]})</option>`).join('');
+  if(keep && [...$('wlFdr').options].some(o=>o.value===keep)) $('wlFdr').value=keep; wlLimit=200; renderWl(); }
+try{ $('wlView').value = ls.get('srv_view', window.innerWidth>=760?'table':'cards'); }catch(e){}
+$('wlSel').addEventListener('change',fillWlSub); $('wlDiv').addEventListener('change',async()=>{ $('wlSub').value='*'; await fillWlSub(); });
+$('wlSub').addEventListener('change',async()=>{ $('wlFdr').value='*'; fillWlFdr(await getList($('wlSel').value)); });
+$('wlFdr').addEventListener('change',()=>{ wlLimit=200; renderWl(); }); $('wlFilter').addEventListener('change',()=>{ wlLimit=200; renderWl(); });
+$('wlView').addEventListener('change',()=>{ ls.set('srv_view',$('wlView').value); renderWl(); });
+let srchT=null; $('wlSearch').addEventListener('input',()=>{ clearTimeout(srchT); srchT=setTimeout(()=>{ wlLimit=200; renderWl(); },250); });
+$('wlMore').addEventListener('click',()=>{ wlLimit+=300; renderWl(); });
+let wlDone=new Set(), wlToken=0, wlLimit=200;
+async function renderWl(){
+  if($('view-lists').hidden) return;
+  const L=await getList($('wlSel').value); if(!L) return;
+  const base=subRows(L), fd=$('wlFdr').value, f=$('wlFilter').value, q=$('wlSearch').value.trim().toUpperCase(), lid=L.listId||L.id;
+  const isDone=a=>{ const d=myAct.get(a); return !!(d && d.action && (!d.listId || d.listId===lid || L.builtin)); };
+  let rows=base.filter(r=>fd==='*'||!fd||(r.fdr||'Feeder not in Master')===fd);
+  const scope=rows.length, scopeDone=rows.filter(r=>isDone(r.a)).length;
+  if(f==='pending') rows=rows.filter(r=>!isDone(r.a)); if(f==='done') rows=rows.filter(r=>isDone(r.a));
+  if(q) rows=rows.filter(r=>(r.a+' '+(r.nm||'')+' '+(r.ad||'')+' '+(r.mb||'')+' '+(r.info||'')).toUpperCase().includes(q));
+  $('wlNote').textContent=`${scope} accounts in this selection · ${scopeDone} actioned by you${rows.length!==scope?' · '+rows.length+' match the filters':''}. Tap an account to record the action.`;
+  const tk=++wlToken; const show=rows.slice(0,wlLimit);
+  // older uploads without stored details: fill from Master shards
+  const need=show.filter(r=>r.nm===undefined);
+  if(need.length){ $('wlItems').innerHTML='<p class="note">Loading consumer details for this substation…</p>';
+    try{ const IX={L:await loadSubLabels()}; const subsNeeded=[...new Set(need.map(r=>IX.L.get(r.sub)).filter(x=>x!==undefined))];
+      const maps=Object.fromEntries(await Promise.all(subsNeeded.map(async si=>[si,await getSubShard(si).catch(()=>new Map())])));
+      need.forEach(r=>{ const si=IX.L.get(r.sub); const c=si!==undefined&&maps[si]?maps[si].get(r.a):null;
+        r.nm=c?c[2]:''; r.ad=c?c[3]:''; r.tf=c?c[1]:''; r.ld=c?c[16]:''; r.mb=c?c[12]:''; r.la=c?c[14]:0; r.lo=c?c[15]:0; });
+    }catch(e){ need.forEach(r=>{ if(r.nm===undefined){ r.nm=''; } }); }
+    if(tk!==wlToken) return; }
+  const nav=r=> r.la ? `<a class="lnk" style="padding:4px 8px;font-size:12px" href="${navUrl(r.la,r.lo)}" target="_blank" rel="noopener" data-stop="1">Navigate</a>` : '';
+  const chip=r=>{ const d=myAct.get(r.a); return d&&d.action?`<span class="chip ${chipCls(d.action)}">${esc(d.action)}</span>`:''; };
+  document.querySelector('main').classList.toggle('wide', $('wlView').value==='table' && !$('view-lists').hidden);
+  if($('wlView').value==='table'){
+    $('wlItems').innerHTML = show.length ? `<div class="tablewrap"><table class="wtab"><thead><tr><th>#</th><th>Account</th><th>Consumer</th><th>Address</th><th>Substation (Master)</th><th>Feeder (Master)</th><th>Tariff</th><th>Load</th><th>Mobile</th><th>List details</th><th>My action</th><th>Map</th></tr></thead><tbody>`+
+      show.map((r,i)=>`<tr data-a="${esc(r.a)}" data-info="${esc(r.info||'')}" tabindex="0"><td>${i+1}</td><td class="mono">${esc(r.a)}</td><td>${esc(r.nm||'')}</td><td>${esc(r.ad||'')}</td><td>${esc(r.sub)}</td><td>${esc(r.fdr||'—')}</td><td>${esc(r.tf||'')}</td><td>${esc(r.ld||'')}</td><td class="mono">${esc(r.mb||'')}</td><td>${esc(r.info||'')}</td><td>${chip(r)}</td><td>${nav(r)}</td></tr>`).join('')+'</tbody></table></div>' : '<p class="note">No accounts for this filter.</p>';
+  } else {
+    $('wlItems').innerHTML = show.map(r=>`<div class="li" role="button" tabindex="0" data-a="${esc(r.a)}" data-info="${esc(r.info||'')}"><span class="l"><span><span class="mono">${esc(r.a)}</span> ${esc(r.nm||'')}</span><span>${esc(r.ad||(r.sub==='Not in Master'?'Not in Master list':''))}</span><span>${esc(r.sub)}${r.fdr?' · '+esc(r.fdr):''}</span><span>${esc(r.tf||'')}${r.ld?' · '+esc(r.ld):''}${r.mb?' · '+esc(r.mb):''}${r.info?' · '+esc(r.info):''}</span></span><span class="r">${chip(r)}${nav(r)}</span></div>`).join('') || '<p class="note">No accounts for this filter.</p>';
+  }
+  $('wlMore').hidden = rows.length<=show.length; if(!$('wlMore').hidden) $('wlMore').textContent=`Show more (${rows.length-show.length} left)`;
+}
+let backState=null;
+function showBack(on){ $('backBar').hidden=!on; $('backBtn2').hidden=!on; if(on) $('backInfo').textContent=backState&&backState.listName?backState.listName:''; }
+function goBack(){ if(!backState) return; const y=backState.scroll; showTab('lists'); setTimeout(()=>window.scrollTo(0,y),350); setTimeout(()=>window.scrollTo(0,y),900); }
+$('backBtn').addEventListener('click',goBack); $('backBtn2').addEventListener('click',goBack);
+async function pickFromList(el){
+  const L=await getList($('wlSel').value);
+  backState={scroll:window.scrollY, listName:L.name+($('wlSub').selectedOptions[0]?' · '+$('wlSub').selectedOptions[0].text:'')};
+  pendingCtx={acct:el.dataset.a, listId: L.listId||L.id, listName:L.name, info:el.dataset.info||''}; ctx=null;
+  await openAcct(el.dataset.a); showBack(true); window.scrollTo(0,0);
+}
+$('wlItems').addEventListener('click',e=>{ if(e.target.closest('[data-stop]')) return; const b=e.target.closest('[data-a]'); if(b) pickFromList(b);});
+$('wlItems').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const b=e.target.closest('[data-a]'); if(b) pickFromList(b);} });
+
+/* ---------- office: upload work lists ---------- */
+let xlsxP=null;
+function loadXLSX(){ if(window.XLSX) return Promise.resolve(); if(!xlsxP) xlsxP=new Promise((res,rej)=>{ const sc=document.createElement('script'); sc.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; sc.onload=res; sc.onerror=()=>{xlsxP=null;rej();}; document.head.appendChild(sc); }); return xlsxP; }
+$('upFile').addEventListener('click',()=>{ loadXLSX().catch(()=>{}); loadIdx().catch(()=>{}); },{once:true});
+let idxP=null;
+function loadIdx(){ if(!idxP) idxP=fetch('data/idx2.json').then(r=>{ if(!r.ok) throw 0; return r.json(); }).then(j=>{
+    const tk=j.t.split(','), n=tk.length, acc=new Float64Array(n), sf=new Uint32Array(n); let a=0;
+    for(let i=0;i<n;i++){ const t=tk[i], p=t.indexOf('.'); a+=parseInt(t.slice(0,p),36); acc[i]=a; sf[i]=parseInt(t.slice(p+1),36); }
+    const find=id=>{ const x=+id; let lo=0,hi=n-1; while(lo<=hi){ const mid=(lo+hi)>>1, v=acc[mid]; if(v===x) return mid; if(v<x) lo=mid+1; else hi=mid-1; } return -1; };
+    return {find, acc, n, sub:k=>j.labels[Math.floor(sf[k]/300)], fdr:k=>j.feeders[sf[k]%300]||'', labels:j.labels, L:new Map(j.labels.map((x,i)=>[x,i]))};
+  }).catch(e=>{ idxP=null; throw e; }); return idxP; }
+const subShards={}; let subLabP=null;
+function loadSubLabels(){ if(!subLabP) subLabP=fetch('data/sublabels.json').then(r=>{ if(!r.ok) throw 0; return r.json(); }).then(a=>new Map(a.map((x,i)=>[x,i]))).catch(e=>{ subLabP=null; throw e; }); return subLabP; }
+function getSubShard(si){ if(!subShards[si]) subShards[si]=fetch('data/s'+si+'.json').then(r=>{ if(!r.ok) throw 0; return r.json(); }).then(arr=>{ const m=new Map(); arr.forEach(r=>m.set(r[0],r)); return m; }).catch(e=>{ delete subShards[si]; throw e; }); return subShards[si]; }
+async function pool(items,n,fn){ let i=0; const run=async()=>{ while(i<items.length){ const k=i++; await fn(items[k],k); } }; await Promise.all(Array.from({length:Math.min(n,items.length)},run)); }
+function parseCSV(t){ const out=[]; let row=[],f='',q=false; for(let i=0;i<t.length;i++){ const c=t[i];
+  if(q){ if(c==='"'){ if(t[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+  else if(c==='"') q=true; else if(c===','){row.push(f);f='';} else if(c==='\n'){row.push(f);out.push(row);row=[];f='';} else if(c!=='\r') f+=c; }
+  if(f!==''||row.length){row.push(f);out.push(row);} return out; }
+const norm=h=>String(h??'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+const ACCT_PATS=['ACCTID','ACCOUNTID','CONSUMERID','CONSUMERNO','CONSUMERNUMBER','ACCOUNTNO','ACCOUNTNUMBER','CONTRACTACCOUNT','CONSID','ACCT','ACCOUNT','CAID'];
+const SHOW_PATS=['OUTSTANDING','CURRENTBALANCE','BALANCE','ARREAR','AMOUNTPAYABLE','DUES','DCDATE','DISCONNECTIONDATE','TDDATE','RCSTATUS','STATUS','AGING'];
+function findCol(hdr,pats){ const H=hdr.map(norm); for(const p of pats){ const i=H.findIndex(h=>h===p); if(i>=0) return i; } for(const p of pats){ const i=H.findIndex(h=>h.includes(p)); if(i>=0) return i; } return -1; }
+let UP=null; // {sheets:{name:aoa}, sheet, hi, hdr}
+function headerRow(aoa){ for(let i=0;i<Math.min(aoa.length,30);i++){ if(findCol(aoa[i],ACCT_PATS)>=0) return i; } return -1; }
+function cellStr(v,h){ if(v===''||v==null) return ''; if(typeof v==='number'){ if(/DATE/.test(norm(h)) && v>20000 && v<70000){ const d=new Date(Math.round((v-25569)*864e5)); return d.toISOString().slice(0,10).split('-').reverse().join('-'); } return Number.isInteger(v)?String(v):v.toFixed(2); } return String(v).trim().replace(/[ T]00:00:00(\.0+)?$/,''); }
+function acctOf(v){ const a=(typeof v==='number'?String(Math.round(v)):String(v??'')).replace(/\D/g,''); return a.length>=6&&a.length<=12 ? pad10(a) : ''; }
+$('upFile').addEventListener('change',async()=>{
+  const f=$('upFile').files[0]; const m=t=>{$('upMsg').textContent=t;}; $('upCfg').hidden=true; UP=null; if(!f) return;
+  m('Reading file…');
+  try{
+    const sheets={};
+    if(/\.csv$/i.test(f.name)) sheets['CSV']=parseCSV(await f.text());
+    else { try{ await loadXLSX(); }catch(e){ m('The Excel reader could not load. Check the internet connection, or save the file as CSV and upload that.'); return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellFormula:false,cellHTML:false,cellStyles:false,cellDates:false,sheetStubs:false});
+      wb.SheetNames.forEach(n=>{ sheets[n]=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:true,defval:'',blankrows:false}); }); }
+    const info=Object.entries(sheets).map(([n,aoa])=>{ const hi=headerRow(aoa); let cnt=0; if(hi>=0){ const ia=findCol(aoa[hi],ACCT_PATS); for(const r of aoa.slice(hi+1)) if(acctOf(r[ia])) cnt++; } return {n,hi,cnt}; });
+    info.sort((x,y)=>y.cnt-x.cnt);
+    UP={sheets,info};
+    $('upSheet').innerHTML=info.map(x=>`<option value="${esc(x.n)}">${esc(x.n)}${x.cnt?' ('+x.cnt+' account IDs)':' (no account column found)'}</option>`).join('');
+    if(!$('upName').value) $('upName').value=f.name.replace(/\.[^.]+$/,'').replace(/[_]+/g,' ').slice(0,60);
+    setSheet(); $('upCfg').hidden=false; $('upCfg').style.display='flex'; m('Check the sheet and columns, then upload.');
+  }catch(e){ m('Could not read this file. Save it as .xlsx or .csv and try again.'); }
+});
+function setSheet(){
+  const aoa=UP.sheets[$('upSheet').value]; let hi=headerRow(aoa); if(hi<0) hi=0; const hdr=(aoa[hi]||[]).map((h,i)=>String(h||'').trim()||('Column '+(i+1)));
+  UP.aoa=aoa; UP.hi=hi; UP.hdr=hdr;
+  const ia=findCol(hdr,ACCT_PATS); $('upAcct').innerHTML=hdr.map((h,i)=>`<option value="${i}">${esc(h)}</option>`).join(''); if(ia>=0) $('upAcct').value=String(ia);
+  const picks=[]; SHOW_PATS.forEach(p=>{ const i=hdr.map(norm).findIndex((h,k)=>h.includes(p)&&k!==ia&&!picks.includes(k)); if(i>=0&&picks.length<3) picks.push(i); });
+  $('upCols').innerHTML=hdr.map((h,i)=>i===+$('upAcct').value?'':`<label class="colchk"><input type="checkbox" value="${i}" ${picks.includes(i)?'checked':''}>${esc(h)}</label>`).join('');
+  prevUp();
+}
+function prevUp(){ const ia=+$('upAcct').value; const ids=new Set(); for(const r of UP.aoa.slice(UP.hi+1)){ const a=acctOf(r[ia]); if(a) ids.add(a); } UP.count=ids.size;
+  $('upPrev').textContent = ids.size ? `${ids.size} unique account IDs found in "${$('upSheet').value}".` : 'No account IDs found in this column. Pick the column that holds the account / consumer ID.'; }
+$('upSheet').addEventListener('change',setSheet); $('upAcct').addEventListener('change',()=>{ setSheet(); });
+$('upCols').addEventListener('change',e=>{ const on=[...$('upCols').querySelectorAll('input:checked')]; if(on.length>4){ e.target.checked=false; $('upPrev').textContent='Pick up to 4 columns.'; } });
+$('upBtn').addEventListener('click',async()=>{
+  const m=t=>{$('upMsg').textContent=t;};
+  if(!isOffice||!db){ m('Only office users can upload lists.'); return; }
+  const name=$('upName').value.trim();
+  if(!UP){ m('Choose an Excel or CSV file first.'); return; } if(!name){ m('Give the list a name.'); return; } if(!UP.count){ m('No account IDs found. Pick the right sheet and account column.'); return; }
+  if(UP.count>30000){ m('The list has '+UP.count+' accounts. Keep each list under 30,000.'); return; }
+  $('upBtn').disabled=true; const t0=Date.now();
+  try{
+    await refP;
+    const ia=+$('upAcct').value, cols=[...$('upCols').querySelectorAll('input:checked')].map(x=>+x.value).slice(0,4), hdr=UP.hdr;
+    const seen=new Set(), base=[];
+    for(const r of UP.aoa.slice(UP.hi+1)){ const a=acctOf(r[ia]); if(!a||seen.has(a)) continue; seen.add(a);
+      const info=cols.map(c=>{ const v=cellStr(r[c],hdr[c]); return v?hdr[c]+': '+v.slice(0,28):''; }).filter(Boolean).join(' · ').slice(0,110);
+      base.push({a,info}); }
+    // match with Master using the compact index (substation + feeder for every account)
+    m(`Matching ${base.length} accounts with Master…`);
+    let IX; try{ IX=await loadIdx(); }catch(e){ m('Could not load the Master index. Check the connection and try again.'); return; }
+    let notIn=0; const g=[],gi=new Map(),fl=[],fi=new Map(); const ix=(L,M,v)=>{ if(!M.has(v)){ M.set(v,L.length); L.push(v);} return M.get(v); };
+    const t1=Date.now();
+    const packed=base.map(r=>{ const k=IX.find(r.a); if(k<0){ notIn++; return [r.a,ix(g,gi,'Not in Master'),ix(fl,fi,''),r.info]; }
+      return [r.a,ix(g,gi,IX.sub(k)),ix(fl,fi,IX.fdr(k)),r.info]; });
+    const chunks=[]; let cur2=[], sz=0;
+    const pack=rows=>{ const G=[],GI=new Map(),F=[],FI=new Map(); return {v:4,g:G,f:F,r:rows.map(x=>{ const y=x.slice(); y[1]=ix(G,GI,g[x[1]]); y[2]=ix(F,FI,fl[x[2]]); if(!y[3]) y.length=3; return y; })}; };
+    for(const x of packed){ const w=x[0].length+(x[3]||'').length+20; if(sz+w>190000){ chunks.push(pack(cur2)); cur2=[]; sz=0; } cur2.push(x); sz+=w; }
+    if(cur2.length) chunks.push(pack(cur2));
+    const id='L'+Date.now().toString(36), parts=chunks.length; let done=0;
+    m(`Uploading ${packed.length} accounts… 0%`);
+    await pool(chunks,6,async(c,k)=>{ await db.doc('worklists/'+id+'/parts/p'+k).set(c); done++; m(`Uploading ${packed.length} accounts… ${Math.round(done*100/parts)}%`); });
+    await db.doc('worklists/'+id).set({name, count:packed.length, parts, createdAt:new Date().toISOString(), createdBy:me?me.name:'', file:($('upFile').files[0]||{}).name||'', sheet:$('upSheet').value, cols:cols.map(c=>hdr[c]), notInMaster:notIn, groupedBy:'Master substation'});
+    const t2=Date.now();
+    m(`Uploaded "${name}": ${packed.length} accounts matched with Master and updated with substation and feeder${notIn?' ('+notIn+' not found in Master)':''}. Took ${((t2-t0)/1000).toFixed(1)} s (matching ${((t1-t0)/1000).toFixed(1)} s, saving ${((t2-t1)/1000).toFixed(1)} s).`);
+    $('upName').value=''; $('upFile').value=''; $('upCfg').hidden=true; UP=null;
+    upMeta.unshift({id,name,count:packed.length,parts,createdAt:new Date().toISOString(),createdBy:me?me.name:''}); renderUpLists(); fillPrgSel();
+    loadLists().then(()=>{ renderUpLists(); fillPrgSel(); }).catch(()=>{});
+  }catch(e){ m(e&&e.code==='quota_exceeded'?'The database is full. Delete an old list first.':'Upload failed. Check the file and try again.'); }
+  finally{ $('upBtn').disabled=false; }
+});
+let delArm=null;
+function selBox(kind,id){ return `<input type="checkbox" class="selList" data-kind="${kind}" data-id="${esc(id)}" aria-label="Select list" style="width:18px;height:18px">`; }
+function togBtn(kind,id,on){ return `<button class="lnk${on?' solid':''}" type="button" data-tog="${kind}" data-id="${esc(id)}" aria-pressed="${on}">${on?'On for staff':'Off'}</button>`; }
+function renderUpLists(){
+  const built=Object.values(WL||{}).filter(w=>!removedBuiltin.has(w.name)).map(w=>{ const n=Object.values(w.groups).reduce((t,g)=>t+g.length,0); const on=!hiddenBuiltin.has(w.name);
+    return `<div class="wlrow"><div style="min-width:0;display:flex;gap:10px;align-items:flex-start">${selBox('b',w.name)}<div><b>${esc(w.name)}</b><div class="note">${n} accounts · prepared list (07-Oct data)</div></div></div><div style="display:flex;gap:8px;align-items:center">${togBtn('b',w.name,on)}<button class="lnk" type="button" data-rmb="${esc(w.name)}">${delArm==='b:'+w.name?'Tap again to remove':'Remove'}</button></div></div>`; }).join('');
+  const bar=`<div class="row" style="justify-content:space-between;align-items:center;padding:6px 0"><span class="note">Tick lists to remove several at once.</span><span style="display:flex;gap:8px"><button class="lnk" type="button" id="delSel">${delArm==='SEL'?'Tap again to remove selected':'Remove selected'}</button>${removedBuiltin.size?'<button class="lnk" type="button" id="restoreB">Restore prepared lists</button>':''}</span></div>`;
+  if(!upMeta.length){ $('upLists').innerHTML=bar+built+'<p class="note">No uploaded lists yet.</p>'; return; }
+  $('upLists').innerHTML=bar+built+upMeta.map(mm=>{ const acted=recDocs.filter(d=>d.latestForAccount==='Yes'&&d.listId===mm.id&&d.action); const pct=mm.count?Math.round(acted.length*100/mm.count):0;
+    const paid=acted.filter(d=>PAY.includes(d.action)).reduce((t,d)=>t+(+d.actAmount||0),0);
+    return `<div class="wlrow"><div style="min-width:0;display:flex;gap:10px;align-items:flex-start">${selBox('u',mm.id)}<div><b>${esc(mm.name)}</b> <span class="chip ok">Uploaded ✓ ${mm.count} accounts</span><div class="note">Uploaded ${esc(fmtTime(mm.createdAt))}${mm.createdBy?' by '+esc(mm.createdBy):''}</div><div class="note"><b>Action taken by staff:</b> ${acted.length} of ${mm.count}${paid?' · Rs '+Math.round(paid).toLocaleString('en-IN')+' collected':''}${acted.length?'':' (no actions saved yet)'}</div></div></div>
+    <div style="display:flex;gap:8px;align-items:center"><span class="note" title="Share of accounts with an action saved">Actioned</span><span class="bar"><i style="width:${acted.length?Math.max(pct,2):0}%"></i></span><span class="note">${pct<1&&acted.length?'<1':pct}%</span>${togBtn('u',mm.id,!mm.hidden)}<button class="lnk" type="button" data-del="${esc(mm.id)}">${delArm===mm.id?'Tap again to delete':'Delete'}</button></div></div>`; }).join('');
+}
+async function saveCfg(){ const ref=db.doc('worklists/_config'); const body={hiddenBuiltin:[...hiddenBuiltin],removedBuiltin:[...removedBuiltin]}; if(cfgExists) await ref.update(body); else { await ref.set(body); cfgExists=true; } }
+async function deleteUploaded(id){ const mm=upMeta.find(x=>x.id===id); if(!mm) return; await pool(Array.from({length:mm.parts||1},(_,k)=>k),6,k=>db.doc('worklists/'+id+'/parts/p'+k).delete()); await db.doc('worklists/'+id).delete(); delete wlCache[id]; }
+$('upLists').addEventListener('click',async e=>{
+  if(e.target.closest('.selList')) return;
+  if(e.target.id==='restoreB'){ removedBuiltin.clear(); try{ await saveCfg(); await loadLists(); renderUpLists(); fillPrgSel(); $('upMsg').textContent='Prepared lists restored.'; }catch(err){ $('upMsg').textContent='Could not restore. Try again.'; } return; }
+  if(e.target.id==='delSel'){ const sel=[...document.querySelectorAll('.selList:checked')].map(x=>({k:x.dataset.kind,id:x.dataset.id}));
+    if(!sel.length){ $('upMsg').textContent='Tick the lists you want to remove first.'; return; }
+    if(delArm!=='SEL'){ delArm='SEL'; renderUpLists(); sel.forEach(x=>{ const c=document.querySelector(`.selList[data-kind="${x.k}"][data-id="${CSS.escape(x.id)}"]`); if(c) c.checked=true; }); return; }
+    delArm=null; $('upMsg').textContent='Removing '+sel.length+' list(s)…';
+    try{ let cfgChanged=false; await pool(sel,4,async x=>{ if(x.k==='b'){ removedBuiltin.add(x.id); cfgChanged=true; } else await deleteUploaded(x.id); }); if(cfgChanged) await saveCfg();
+      await loadLists(); renderUpLists(); fillPrgSel(); $('upMsg').textContent=sel.length+' list(s) removed. Actions already saved by staff are kept.'; }
+    catch(err){ $('upMsg').textContent='Some lists could not be removed. Try again.'; await loadLists(); renderUpLists(); }
+    return; }
+  const rb=e.target.closest('[data-rmb]'); if(rb){ const nm=rb.dataset.rmb; if(delArm!=='b:'+nm){ delArm='b:'+nm; renderUpLists(); return; }
+    delArm=null; removedBuiltin.add(nm); try{ await saveCfg(); await loadLists(); renderUpLists(); fillPrgSel(); $('upMsg').textContent='List removed. Use "Restore prepared lists" to bring it back.'; }catch(err){ $('upMsg').textContent='Could not remove the list. Try again.'; } return; }
+  const t=e.target.closest('[data-tog]');
+  if(t){ t.disabled=true; const id=t.dataset.id;
+    try{
+      if(t.dataset.tog==='b'){ hiddenBuiltin.has(id)?hiddenBuiltin.delete(id):hiddenBuiltin.add(id);
+        await saveCfg(); }
+      else { const mm=upMeta.find(x=>x.id===id); await db.doc('worklists/'+id).update({hidden:!mm.hidden}); }
+      await loadLists(); renderUpLists(); fillPrgSel(); $('upMsg').textContent='Work list visibility updated for staff.';
+    }catch(err){ $('upMsg').textContent='Could not change the list. Try again.'; t.disabled=false; }
+    return; }
+  const b=e.target.closest('[data-del]'); if(!b) return; const id=b.dataset.del;
+  if(delArm!==id){ delArm=id; renderUpLists(); return; }
+  delArm=null; const mm=upMeta.find(x=>x.id===id);
+  try{ await deleteUploaded(id); await loadLists(); renderUpLists(); $('upMsg').textContent='List deleted. Actions already saved by staff are kept.'; }
+  catch(err){ $('upMsg').textContent='Could not delete the list. Try again.'; } });
+
+/* ---------- office records ---------- */
+let recDocs=[], recLoaded=false, isOffice=false;
+async function loadAll(){
+  let all=[];
+  { let last=null; for(let i=0;i<40;i++){ let q=db.collection('entries').orderBy('updatedAt','desc'); if(last) q=q.where('updatedAt','<',last); const ds=(await q.limit(1000).get()).docs.map(d=>d.data()); all=all.concat(ds); if(ds.length<1000) break; last=ds[ds.length-1].updatedAt; } }
+  let staff=[]; try{ staff=(await db.collection('surveys').get()).docs.map(d=>({id:d.id,...d.data()})); }catch(e){}
+  await pool(staff,4,async st=>{
+    let last=null;
+    for(let i=0;i<30;i++){ let q=db.collection('surveys/'+st.id+'/items').orderBy('updatedAt','desc'); if(last) q=q.where('updatedAt','<',last);
+      const ds=(await q.limit(1000).get()).docs.map(d=>d.data()); all=all.concat(ds); if(ds.length<1000) break; last=ds[ds.length-1].updatedAt; }
+  });
+  all.sort((x,y)=>(y.updatedAt||'').localeCompare(x.updatedAt||''));
+  const seen=new Set(); all.forEach(d=>{ d.latestForAccount = seen.has(d.acct)?'No':'Yes'; seen.add(d.acct); });
+  staff=[...new Set(all.map(d=>d.byName).filter(Boolean))];
+  return {all,staff};
+}
+async function startRecords(force){
+  if(!isOffice) return;
+  renderStaffAdmin();
+  setTimeout(()=>{ loadXLSX().catch(()=>{}); loadIdx().catch(()=>{}); },300);
+  if(recLoaded && !force) return;
+  if(!db){ $('recMsg').textContent='Sign in to Claude to see office records.'; return; }
+  $('recMsg').textContent='Loading records…'; $('refBtn').disabled=true;
+  try{ const r=await loadAll(); recDocs=r.all; recLoaded=true; recDocs.forEach(d=>wlDone.add(d.acct));
+    $('recMsg').textContent=r.all.length+' entries from '+r.staff.length+' staff. Office only; field staff cannot open this tab.';
+    const acts=[...new Set(recDocs.map(d=>d.action).filter(Boolean))].sort(); const kv=$('recAct').value; $('recAct').innerHTML='<option value="">All actions</option><option value="__none">No action recorded</option>'+acts.map(a=>`<option>${esc(a)}</option>`).join(''); $('recAct').value=kv;
+    renderRecords(); try{ await loadLists(); }catch(e){} renderUpLists(); fillPrgSel(); renderAbLists(); }
+  catch(e){ $('recMsg').textContent='Records could not be loaded. Check that you have Editor access, then Refresh.'; }
+  finally{ $('refBtn').disabled=false; }
+}
+$('refBtn').addEventListener('click',()=>startRecords(true));
+$('recSub').addEventListener('change',renderRecords); $('recAct').addEventListener('change',renderRecords);
+function renderRecords(){
+  const f=$('recSub').value, fa=$('recAct').value, list=recDocs.filter(d=>(!f||d.substation===f)&&(!fa||(fa==='__none'?!d.action:d.action===fa)));
+  const today=new Date().toISOString().slice(0,10), latest=recDocs.filter(d=>d.latestForAccount==='Yes');
+  $('stTotal').textContent=latest.length; $('stToday').textContent=recDocs.filter(d=>(d.updatedAt||'').slice(0,10)===today).length; $('stGps').textContent=latest.filter(d=>d.lat!=null).length;
+  $('stPaid').textContent=latest.filter(d=>PAY.includes(d.action)).length; $('stProm').textContent=latest.filter(d=>PROM.includes(d.action)).length; $('stDisp').textContent=latest.filter(d=>DISP.includes(d.action)).length;
+  $('recBody').innerHTML=list.length?list.slice(0,500).map(d=>`<tr><td>${esc(fmtTime(d.updatedAt))}</td><td class="mono"><a href="#" data-a="${esc(d.acct)}">${esc(d.acct)}</a>${d.latestForAccount==='No'?' <span class="chip warn">older</span>':''}</td><td>${esc(d.name)}</td><td>${d.action?`<span class="chip ${chipCls(d.action)}">${esc(d.action)}</span>`:'—'}${d.actAmount?' Rs '+esc(d.actAmount):''}${d.actDate?' by '+esc(d.actDate):''}${d.actOtherAcct?' from '+esc(d.actOtherAcct):''}${d.actCase?' #'+esc(d.actCase):''}</td><td>${esc(d.listName||'')}</td><td>${esc(d.substation)}</td><td>${esc(d.feeder)}</td><td>${esc(d.dt)}</td><td>${esc(d.pole)}</td><td class="mono">${esc(d.mobile)}</td><td>${d.lat!=null?`<a href="${navUrl(d.lat,d.lon)}" target="_blank" rel="noopener">Navigate</a>`:(d.masterLat?`<a href="${navUrl(d.masterLat,d.masterLon)}" target="_blank" rel="noopener">Master pt</a>`:'—')}</td><td>${esc(d.byName)} <span class="note">${esc(d.byDesig||'')}</span></td></tr>`).join(''):'<tr><td colspan="12">No entries for this filter.</td></tr>';
+}
+$('recBody').addEventListener('click',e=>{const a=e.target.closest('[data-a]'); if(a){e.preventDefault(); openAcct(a.dataset.a);}});
+$('dlBtn').addEventListener('click',async()=>{
+  if(!db||!isOffice){ $('recMsg').textContent='Only office users can download records.'; return; }
+  $('dlBtn').disabled=true; $('recMsg').textContent='Collecting every record…';
+  try{
+    const {all}=await loadAll();
+    const cols=['acct','name','tariff','load','division','conStatus','substation','feeder','masterSubstation','masterFeeder','dt','pole','mobile','mobile2','lat','lon','accuracy','gpsSource','gpsAt','siteStatus','remarks','action','actAmount','actReceipt','actDate','actCase','actOtherAcct','listName','masterLat','masterLon','byName','byDesig','updatedAt','latestForAccount'];
+    const csv=[cols.join(',')].concat(all.map(d=>cols.map(c=>{let v=d[c]==null?'':String(d[c]); if(/^\d{8,}$/.test(v)) v='="'+v+'"'; return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(','))).join('\r\n');
+    const dl=await claude.use('downloads');
+    if(!dl){ $('recMsg').textContent='Download is not available in this view.'; return; }
+    await dl.save({filename:'EUDC_MBD_Site_Survey_'+new Date().toISOString().slice(0,10)+'.csv',data:new Blob(['﻿'+csv],{type:'text/csv'})});
+    $('recMsg').textContent=all.length+' records prepared for download.';
+  }catch(e){ $('recMsg').textContent='Download was cancelled or failed. Try again.'; }
+  finally{ $('dlBtn').disabled=false; }
+});
+
+/* ---------- office: action abstract ---------- */
+let abList='__all', abAct=null, abPeriod='all', abLimit=100, abRows=[];
+function abListDefs(){ const L=[{v:'__all',n:'All entries'}]; upMeta.forEach(m=>L.push({v:'u:'+m.id,n:m.name+(m.hidden?' (off)':'')})); Object.values(WL||{}).filter(w=>!removedBuiltin.has(w.name)).forEach(w=>L.push({v:w.id,n:w.name})); return L; }
+function renderAbLists(){ const defs=abListDefs(); if(!defs.some(d=>d.v===abList)) abList='__all';
+  $('abLists').innerHTML=defs.map(d=>`<button type="button" class="slc" data-l="${esc(d.v)}" aria-pressed="${d.v===abList}">${esc(d.n)}</button>`).join('');
+  const staffNames=[...new Set(recDocs.map(d=>d.byName).filter(Boolean))].sort(); const ks=$('abStaff').value;
+  $('abStaff').innerHTML='<option value="">All staff</option>'+staffNames.map(n=>`<option>${esc(n)}</option>`).join(''); $('abStaff').value=ks;
+  renderAb(); }
+$('abLists').addEventListener('click',e=>{ const b=e.target.closest('[data-l]'); if(!b) return; abList=b.dataset.l; abAct=null; $('abSub').value=''; renderAbLists(); });
+$('abPeriod').addEventListener('click',e=>{ const b=e.target.closest('[data-p]'); if(!b) return; abPeriod=b.dataset.p; $('abPeriod').querySelectorAll('[data-p]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.p===abPeriod)); renderAb(); });
+$('abSub').addEventListener('change',()=>{ abLimit=100; renderAb(); }); $('abStaff').addEventListener('change',()=>{ abLimit=100; renderAb(); });
+$('abBody').addEventListener('click',e=>{ const tr=e.target.closest('[data-act]'); if(!tr) return; abAct = abAct===tr.dataset.act ? null : tr.dataset.act; abLimit=100; renderAb(); });
+$('abMore').addEventListener('click',()=>{ abLimit+=300; renderAbDetail(); });
+function inPeriod(t){ if(abPeriod==='all') return true; if(!t) return false; const d=new Date(t); if(abPeriod==='today') return d.toDateString()===new Date().toDateString(); return (Date.now()-d.getTime())<=(+abPeriod)*864e5; }
+async function renderAb(){
+  const latest=recDocs.filter(d=>d.latestForAccount==='Yes');
+  let rows=[], L=null, lid=null, pendingRows=[];
+  if(abList==='__all'){ rows=latest.filter(d=>d.action).map(d=>({a:d.acct,nm:d.name,sub:d.substation||d.masterSubstation||'',fdr:d.feeder||d.masterFeeder||'',d})); }
+  else { L=await getList(abList); if(!L){ $('abBody').innerHTML='<tr><td colspan="4">List not found.</td></tr>'; return; } lid=L.listId||L.id;
+    const mp=new Map(latest.map(d=>[d.acct,d]));
+    Object.values(L.groups).flat().forEach(r=>{ const d=mp.get(r.a); const ok=d&&d.action&&(L.builtin||!d.listId||d.listId===lid); const row={a:r.a,nm:r.nm||(d&&d.name)||'',sub:r.sub,fdr:r.fdr||'',info:r.info||'',la:r.la,lo:r.lo,d:ok?d:null}; if(ok) rows.push(row); else pendingRows.push(row); }); }
+  // substation options from current list scope
+  const subs=[...new Set(rows.concat(pendingRows).map(r=>r.sub).filter(Boolean))].sort(subSort); const ks=$('abSub').value;
+  $('abSub').innerHTML='<option value="">All substations</option>'+subs.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join(''); if(subs.includes(ks)) $('abSub').value=ks;
+  const sf=$('abSub').value, st=$('abStaff').value;
+  const keep=r=>(!sf||r.sub===sf);
+  rows=rows.filter(r=>keep(r)&&(!st||r.d.byName===st)&&inPeriod(r.d.updatedAt)); pendingRows=pendingRows.filter(keep);
+  const groups={}; rows.forEach(r=>{ const k=r.d.action; (groups[k]=groups[k]||[]).push(r); });
+  const order=ORDER;
+  const keys=Object.keys(groups).sort((a,b)=>((order.indexOf(a)+1)||99)-((order.indexOf(b)+1)||99));
+  const total=rows.length+(L?pendingRows.length:0);
+  const amt=g=>g.reduce((t,r)=>t+(PAY.includes(r.d.action)?(+r.d.actAmount||0):0),0);
+  let html=keys.map(k=>`<tr data-act="${esc(k)}" class="${abAct===k?'sel':''}"><td><span class="chip ${chipCls(k)}">${esc(k)}</span></td><td>${groups[k].length}</td><td>${total?Math.round(groups[k].length*100/total):0}%</td><td>${amt(groups[k])?inr(Math.round(amt(groups[k]))):'—'}</td></tr>`).join('');
+  if(L) html+=`<tr data-act="__pending" class="${abAct==='__pending'?'sel':''}"><td><span class="chip">No action yet</span></td><td>${pendingRows.length}</td><td>${total?Math.round(pendingRows.length*100/total):0}%</td><td>—</td></tr>`;
+  html+=`<tr style="font-weight:700"><td>Total${abPeriod!=='all'||st?' (filtered)':''}</td><td>${total}</td><td>${total?'100%':''}</td><td>${inr(Math.round(amt(rows)))}</td></tr>`;
+  $('abBody').innerHTML = (keys.length||L) ? html : '<tr><td colspan="4">No actions saved yet for this selection.</td></tr>';
+  $('abNote').textContent = L ? `${L.name}: ${total} accounts${sf?' in '+sf:''} · ${rows.length} actioned · ${pendingRows.length} without action.` : `${rows.length} accounts with an action saved${sf?' in '+sf:''}.`;
+  abRows = abAct==='__pending' ? pendingRows : (abAct ? (groups[abAct]||[]) : (L? rows.concat(pendingRows) : rows));
+  $('abDetTitle').textContent = (abAct==='__pending'?'No action yet':abAct||'All accounts')+' · '+abRows.length;
+  renderAbDetail();
+}
+function actDetail(d){ if(!d) return ''; return [d.actAmount?'Rs '+inr(d.actAmount):'', d.actReceipt?'Rcpt '+d.actReceipt:'', d.actDate?'Promise '+d.actDate:'', d.actCase?'#'+d.actCase:'', d.actOtherAcct?'From '+d.actOtherAcct:''].filter(Boolean).join(' · '); }
+function renderAbDetail(){ const show=abRows.slice(0,abLimit);
+  $('abDet').innerHTML = show.length ? show.map((r,i)=>{ const d=r.d; const la=d&&d.lat!=null?d.lat:(r.la||(d&&d.masterLat)), lo=d&&d.lat!=null?d.lon:(r.lo||(d&&d.masterLon));
+    return `<tr data-a="${esc(r.a)}"><td>${i+1}</td><td class="mono">${esc(r.a)}</td><td>${esc(r.nm||'')}</td><td>${esc(r.sub||'')}</td><td>${esc(r.fdr||'')}</td><td>${d?`<span class="chip ${chipCls(d.action)}">${esc(d.action)}</span>`:'<span class="chip">No action yet</span>'}</td><td>${esc(actDetail(d))}</td><td>${esc(d?d.remarks||'':r.info||'')}</td><td>${esc(d?d.byName||'':'')}</td><td>${esc(d?fmtTime(d.updatedAt):'')}</td><td>${la?`<a href="${navUrl(la,lo)}" target="_blank" rel="noopener" data-stop="1">Navigate</a>`:'—'}</td></tr>`; }).join('') : '<tr><td colspan="11">No accounts for this selection.</td></tr>';
+  $('abMore').hidden = abRows.length<=show.length; if(!$('abMore').hidden) $('abMore').textContent=`Show more (${abRows.length-show.length} left)`; }
+$('abDet').addEventListener('click',e=>{ if(e.target.closest('[data-stop]')) return; const tr=e.target.closest('[data-a]'); if(tr) openAcct(tr.dataset.a); });
+$('abDl').addEventListener('click',async()=>{ if(!abRows.length){ $('abNote').textContent='Nothing to download for this selection.'; return; }
+  const dl=await claude.use('downloads'); if(!dl){ $('abNote').textContent='Download is not available in this view.'; return; }
+  const q=v=>{ v=v==null?'':String(v); if(/^\d{8,}$/.test(v)) v='="'+v+'"'; return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+  const head=['Account ID','Consumer name','Substation','Feeder','Result of visit','Amount paid','Receipt no','Promise date','Case / complaint no','Other source account','Site status','Remarks','Mobile (entered)','DT','Pole','Latitude','Longitude','List details','Action by','Designation','Date & time'];
+  const out=[head.join(',')].concat(abRows.map(r=>{ const d=r.d||{}; return [r.a,r.nm,r.sub,r.fdr,d.action||'No action yet',d.actAmount??'',d.actReceipt||'',d.actDate||'',d.actCase||'',d.actOtherAcct||'',d.siteStatus||'',d.remarks||'',d.mobile||'',d.dt||'',d.pole||'',d.lat??'',d.lon??'',r.info||'',d.byName||'',d.byDesig||'',d.updatedAt?new Date(d.updatedAt).toLocaleString('en-IN'):''].map(q).join(','); })).join('\r\n');
+  const ln=abListDefs().find(x=>x.v===abList); const nm=(ln?ln.n:'All')+'_'+(abAct==='__pending'?'No_action':abAct||'All_results')+($('abSub').value?'_'+$('abSub').value:'');
+  try{ await dl.save({filename:'Action_list_'+nm.replace(/[^A-Za-z0-9]+/g,'_').slice(0,70)+'.csv',data:new Blob(['﻿'+out],{type:'text/csv'})}); $('abNote').textContent=abRows.length+' rows prepared for download.'; }catch(e){} });
+
+/* ---------- office: staff & secure login ---------- */
+
+function teamSubs(id,seen=new Set()){ if(seen.has(id)) return []; seen.add(id); const x=STAFF[id]; if(!x) return []; let s=[...(x.subs||[])]; Object.values(STAFF).filter(k=>k.reportsTo===id).forEach(k=>{ s=s.concat(teamSubs(k.id,seen)); }); return [...new Set(s)]; }
+function chainOf(id){ const o={je:'',ae:''}; let x=STAFF[id], g=0; while(x&&x.reportsTo&&g++<6){ x=STAFF[x.reportsTo]; if(!x) break; if(x.role==='JE'&&!o.je) o.je=x.name; if(x.role==='AE'&&!o.ae) o.ae=x.name; } return o; }
+async function renderStaffAdmin(){
+  if(!isOffice||!db) return;
+  await loadStaff();
+  const list=Object.values(STAFF).sort(staffSort);
+  $('staffBody').innerHTML = list.length ? list.map(x=>{ const subs=teamSubs(x.id);
+    return `<tr><td><b>${esc(x.name)}</b>${x.active===false?' <span class="chip warn">inactive</span>':''}</td><td>${esc(x.role)}</td><td>${esc(STAFF[x.reportsTo]?STAFF[x.reportsTo].name:'—')}</td><td style="white-space:normal;max-width:320px">${subs.length?esc(subs.length>4?subs.slice(0,4).join(', ')+' +'+(subs.length-4)+' more':subs.join(', ')):'—'}</td><td>${x.pwHash?'<span class="chip ok">Own password</span>':'<span class="chip">Default 1234</span>'}${x.pwHash?` <button class="lnk" style="padding:2px 8px;font-size:12px" type="button" data-reset="${esc(x.id)}">Reset to 1234</button>`:''}</td><td><button class="lnk" type="button" data-edit="${esc(x.id)}">Edit</button></td></tr>`; }).join('') : '<tr><td colspan="6">No staff yet. Add staff below.</td></tr>';
+  fillStaffForm();
+}
+function fillStaffForm(){ const keep=$('sfParent').value; $('sfParent').innerHTML='<option value="">— none —</option>'+Object.values(STAFF).filter(x=>['EE','AE','JE','TG-2'].includes(x.role)).map(x=>`<option value="${esc(x.id)}">${esc(staffLabel(x))}</option>`).join(''); $('sfParent').value=keep;
+  if(!$('sfSubs').childElementCount && REF) $('sfSubs').innerHTML=REF.subs.map(s=>`<label class="colchk"><input type="checkbox" value="${esc(s[0])}">${esc(s[0])}</label>`).join(''); }
+$('staffBody').addEventListener('click',async e=>{
+  const ed=e.target.closest('[data-edit]'); if(ed){ const x=STAFF[ed.dataset.edit]; $('sfId').value=x.id; $('sfName').value=x.name; $('sfRole').value=x.role; $('sfParent').value=x.reportsTo||''; fillStaffForm(); $('sfSubs').querySelectorAll('input').forEach(c=>c.checked=(x.subs||[]).includes(c.value)); $('staffFormBox').open=true; $('sfMsg').textContent='Editing '+x.name+'.'; return; }
+  const rs=e.target.closest('[data-reset]'); if(rs){ try{ const x={...STAFF[rs.dataset.reset]}; delete x.id; delete x.pwHash; delete x.pwSetAt; x.pwResetAt=new Date().toISOString(); await db.doc('staff/'+rs.dataset.reset).set(x); $('sfMsg').textContent='Password reset to 1234 for '+STAFF[rs.dataset.reset].name+'.'; renderStaffAdmin(); }catch(err){ $('sfMsg').textContent='Could not reset. Try again.'; } }
+});
+$('impBtn').addEventListener('click',async()=>{ const f=$('impFile').files[0], m=t=>{$('impMsg').textContent=t;}; if(!f){ m('Choose the file the staff member sent.'); return; }
+  try{ const rows=parseCSV((await f.text()).replace(/^﻿/,'')); const h=rows[0]||[]; const ix=h.indexOf('_rec'); if(ix<0){ m('This is not an entries file from this page.'); return; }
+    let added=0, skipped=0, bad=0;
+    await pool(rows.slice(1).filter(r=>r[ix]),4,async r=>{ let rec; try{ rec=JSON.parse(b64d(r[ix])); }catch(e){ bad++; return; } if(!rec||!rec.acct){ bad++; return; } delete rec.queuedAt;
+      const ref=db.doc('entries/'+rec.acct); const cur0=await ref.get(); if(cur0.exists && (cur0.data().updatedAt||'')>=(rec.updatedAt||'')){ skipped++; return; }
+      await ref.set({...rec, importedAt:new Date().toISOString(), importedBy:me?me.name:(staffRec?staffRec.name:'Office')}); added++; });
+    m(`${added} entries added${skipped?', '+skipped+' already up to date':''}${bad?', '+bad+' unreadable rows':''}.`); $('impFile').value=''; startRecords(true);
+  }catch(e){ m('Import failed. Check the file and try again.'); } });
+$('sfClear').addEventListener('click',()=>{ $('sfId').value=''; $('sfName').value=''; $('sfRole').value='TG-2'; $('sfParent').value=''; $('sfSubs').querySelectorAll('input').forEach(c=>c.checked=false); $('sfMsg').textContent=''; });
+$('sfSave').addEventListener('click',async()=>{ const name=$('sfName').value.trim(); if(!name){ $('sfMsg').textContent='Enter the staff name.'; return; }
+  const id=$('sfId').value || ('s'+Date.now().toString(36)); const subs=[...$('sfSubs').querySelectorAll('input:checked')].map(c=>c.value);
+  const body={...(STAFF[id]||{}), name, role:$('sfRole').value, reportsTo:$('sfParent').value, subs, active:true, updatedAt:new Date().toISOString()}; delete body.id; if(!body.createdAt) body.createdAt=body.updatedAt;
+  try{ await db.doc('staff/'+id).set(body);
+    // keep approved records in step with edits
+    $('sfClear').click(); $('sfMsg').textContent='Saved '+name+'.'; renderStaffAdmin(); }
+  catch(e){ $('sfMsg').textContent='Could not save. Try again.'; } });
+
+/* ---------- office: substation-wise progress ---------- */
+let prgRows=[];
+function fillPrgSel(){ const keep=$('prgSel').value;
+  const opts=upMeta.map(m=>`<option value="u:${esc(m.id)}">${esc(m.name)}${m.hidden?' (off)':''}</option>`).join('')+Object.values(WL||{}).filter(w=>!removedBuiltin.has(w.name)).map(w=>`<option value="${w.id}">${esc(w.name)}${hiddenBuiltin.has(w.name)?' (off)':''}</option>`).join('');
+  $('prgSel').innerHTML=opts; if(keep && [...$('prgSel').options].some(o=>o.value===keep)) $('prgSel').value=keep; renderPrg(); }
+async function renderPrg(){
+  const v=$('prgSel').value; if(!v){ $('prgBody').innerHTML='<tr><td colspan="11">No list selected.</td></tr>'; return; }
+  const L=await getList(v); if(!L) return; const lid=L.listId||L.id;
+  const latest=new Map(recDocs.filter(d=>d.latestForAccount==='Yes').map(d=>[d.acct,d]));
+  const SITE=['Premises locked','Consumer not found / house vacant'];
+  prgRows=Object.entries(L.groups).map(([sub,rows])=>{ const o={sub,n:rows.length,act:0,paid:0,amt:0,prom:0,disp:0,oth:0,site:0};
+    rows.forEach(r=>{ const d=latest.get(r.a); if(!d||!d.action||(!L.builtin && d.listId && d.listId!==lid)) return; o.act++;
+      if(PAY.includes(d.action)){o.paid++; o.amt+=+d.actAmount||0;} else if(PROM.includes(d.action)) o.prom++; else if(DISP.includes(d.action)) o.disp++; else if(OTHERS.includes(d.action)) o.oth++; else if(SITE.includes(d.action)) o.site++; });
+    return o; }).sort((a,b)=>b.n-a.n);
+  const T=prgRows.reduce((t,o)=>{ for(const k of ['n','act','paid','amt','prom','disp','oth','site']) t[k]+=o[k]; return t; },{sub:'TOTAL',n:0,act:0,paid:0,amt:0,prom:0,disp:0,oth:0,site:0});
+  const row=(o,b)=>`<tr${b?' style="font-weight:700"':''}><td>${esc(o.sub)}</td><td>${o.n}</td><td>${o.act}</td><td>${o.n-o.act}</td><td>${o.n?Math.round(o.act*100/o.n):0}%</td><td>${o.paid}</td><td>${Math.round(o.amt).toLocaleString('en-IN')}</td><td>${o.prom}</td><td>${o.disp}</td><td>${o.oth}</td><td>${o.site}</td></tr>`;
+  $('prgBody').innerHTML=prgRows.map(o=>row(o)).join('')+row(T,true);
+  $('prgNote').textContent=`${L.name}: ${T.n} accounts in ${prgRows.length} substations, ${T.act} actioned. Based on the latest entry per account.`;
+}
+$('prgSel').addEventListener('change',renderPrg);
+$('prgList').addEventListener('click',async()=>{ const v=$('prgSel').value; if(!v) return; const L=await getList(v); if(!L) return;
+  const dl=await claude.use('downloads'); if(!dl){ $('prgNote').textContent='Download is not available in this view.'; return; }
+  const latest=new Map(recDocs.filter(d=>d.latestForAccount==='Yes').map(d=>[d.acct,d])); const lid=L.listId||L.id;
+  const rows=Object.values(L.groups).flat().sort((x,y)=>subSort(x.sub,y.sub));
+  const q=v=>{ v=v==null?'':String(v); if(/^\d{8,}$/.test(v)) v='="'+v+'"'; return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+  const head=['Account ID','Consumer name','Address','Substation (Master)','Feeder (Master)','Tariff','Load','Mobile','Latitude','Longitude','List details','Action','Action amount','Promise date','Case / other source','Action by','Action date'];
+  const out=[head.join(',')].concat(rows.map(r=>{ const d=latest.get(r.a); const ok=d&&d.action&&(L.builtin||!d.listId||d.listId===lid);
+    return [r.a,r.nm,r.ad,r.sub,r.fdr,r.tf,r.ld,r.mb,r.la||'',r.lo||'',r.info,ok?d.action:'',ok?(d.actAmount??''):'',ok?d.actDate:'',ok?(d.actCase||d.actOtherAcct||''):'',ok?d.byName:'',ok?(d.updatedAt||'').slice(0,10):''].map(q).join(','); })).join('\r\n');
+  try{ await dl.save({filename:'Worklist_with_Master_'+L.name.replace(/[^A-Za-z0-9]+/g,'_').slice(0,40)+'.csv',data:new Blob(['\ufeff'+out],{type:'text/csv'})}); }catch(e){} });
+$('prgDl').addEventListener('click',async()=>{ if(!prgRows.length) return; const dl=await claude.use('downloads'); if(!dl){ $('prgNote').textContent='Download is not available in this view.'; return; }
+  const h='Substation,Accounts,Actioned,Pending,Done %,Paid or part paid,Rs collected,Promised,Dispute or theft,Other source,Locked or not found';
+  const csv=[h].concat(prgRows.map(o=>[`"${o.sub.replace(/"/g,'""')}"`,o.n,o.act,o.n-o.act,o.n?Math.round(o.act*100/o.n):0,o.paid,Math.round(o.amt),o.prom,o.disp,o.oth,o.site].join(','))).join('\r\n');
+  try{ await dl.save({filename:'Worklist_Substationwise_'+($('prgSel').selectedOptions[0].text.replace(/[^A-Za-z0-9]+/g,'_').slice(0,40))+'.csv',data:new Blob(['\ufeff'+csv],{type:'text/csv'})}); }catch(e){} });
+
+/* ---------- helpers ---------- */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtTime(t){ if(!t) return ''; const d=new Date(t); if(isNaN(d)) return ''; return d.toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); }
+['mobIn','mob2In','acctInput'].forEach(id=>$(id).addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'');}));
+
+/* ---------- capabilities ---------- */
+const ready = (window.claude && claude.use) ? Promise.all([claude.use('db'),claude.use('user')]).then(async ([d,u])=>{
+  db=d; user=u;
+  if(u){ try{ uid=await u.id(); }catch(e){} try{ isOwnerFlag=await u.isOwner(); }catch(e){} try{ canEditFlag=await u.canEdit(); }catch(e){} try{ canWrite=await u.can('data.write'); }catch(e){} }
+  if(db) await loadStaff();
+  try{ const v=JSON.parse(localStorage.getItem('srv_me')||'null'); if(v && (window.FB || !me)){ me=v; } }catch(e){}
+  idReady=true; applySession(); showAccess();
+  if(!me) $('whoDlg').hidden=false;
+}).catch(()=>{ idReady=true; renderWho(); showAccess(); }) : Promise.resolve().then(()=>{ idReady=true; renderWho(); showAccess(); });
+function showAccess(msg){ const b=$('accessBanner');
+  if(msg){ b.innerHTML=msg; b.hidden=false; return; }
+  if(!db){ b.innerHTML='<b>Not connected.</b> Check the internet connection and reload the page.'; b.hidden=false; }
+  else if(canWrite===false){ b.innerHTML='<b>This phone has view-only access.</b> You can sign in, use work lists and record actions; entries are kept on this phone. Use <b>Download my entries</b> (under My surveys) and send the file to the office.'; b.hidden=false; }
+  else b.hidden=true; }
+renderWho();
+})();
+</script>
+
+<script>
+/* Office: users approval + master data upload (Firebase) */
+(function(){
+  const $=id=>document.getElementById(id);
+  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  if(!window.FB) return;
+  async function renderUsers(){
+    let list=[]; try{ list=await FB.users(); }catch(e){ $('fbUsers').innerHTML='<p class="note">Could not load users ('+esc(e.code||e.message)+').</p>'; return; }
+    const me=(FB.state().user||{}).uid; const order={pending:0,approved:1,rejected:2};
+    list.sort((a,b)=>(order[a.status]??3)-(order[b.status]??3)||(a.name||'').localeCompare(b.name||''));
+    const pend=list.filter(u=>u.status==='pending').length;
+    $('fbUsers').innerHTML=(pend?`<div class="msg warn">${pend} new account${pend>1?'s':''} waiting for approval.</div>`:'')+'<div class="tablewrap"><table><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Role</th><th>Designation</th><th></th></tr></thead><tbody>'+list.map(u=>`<tr data-uid="${esc(u.uid)}"><td><b>${esc(u.name)}</b></td><td>${esc(u.email)}</td><td><span class="chip ${u.status==='approved'?'ok':u.status==='pending'?'warn':'bad'}">${esc(u.status||'')}</span></td>
+      <td><select data-f="role" ${u.uid===me?'disabled':''}>${['staff','office','admin'].map(r=>`<option ${u.role===r?'selected':''}>${r}</option>`).join('')}</select></td>
+      <td><select data-f="desig">${['TG-2','JE','AE','EE','Lineman','Meter reader','Office staff','Other'].map(r=>`<option ${u.desig===r?'selected':''}>${r}</option>`).join('')}</select></td>
+      <td style="white-space:nowrap">${u.status!=='approved'?'<button class="lnk solid" type="button" data-act="approve">Approve</button> ':''}${u.status!=='rejected'&&u.uid!==me?'<button class="lnk" type="button" data-act="reject">'+(u.status==='approved'?'Block':'Reject')+'</button>':''}</td></tr>`).join('')+'</tbody></table></div>';
+  }
+  document.addEventListener('click',e=>{ if(e.target&&e.target.id==='tab-records') renderUsers(); });
+  $('fbUsers').addEventListener('click',async e=>{ const b=e.target.closest('[data-act]'); if(!b) return; const uid=b.closest('[data-uid]').dataset.uid; b.disabled=true;
+    try{ await FB.setUser(uid,{status:b.dataset.act==='approve'?'approved':'rejected',decidedAt:new Date().toISOString()}); }catch(err){ alert0('Could not update ('+(err.code||err.message)+').'); } renderUsers(); });
+  $('fbUsers').addEventListener('change',async e=>{ const s=e.target.closest('select[data-f]'); if(!s) return; const uid=s.closest('[data-uid]').dataset.uid;
+    try{ await FB.setUser(uid,{[s.dataset.f]:s.value}); }catch(err){ alert0('Could not update ('+(err.code||err.message)+').'); } });
+  function alert0(t){ const m=document.createElement('div'); m.className='msg bad'; m.textContent=t; $('fbUsers').prepend(m); setTimeout(()=>m.remove(),5000); }
+  $('fbOutBtn').addEventListener('click',()=>FB.signOut());
+  $('fbMasterUp').addEventListener('click',async()=>{ const fl=[...$('fbMasterFiles').files]; const m=t=>{$('fbMasterMsg').textContent=t;};
+    if(!fl.length){ m('Select the master data files first.'); return; }
+    const bad=fl.filter(f=>!/^(a\d+|s\d+|idx2|sublabels|ref|worklists)\.json$/.test(f.name)); if(bad.length){ m('These files are not master data files: '+bad.slice(0,5).map(f=>f.name).join(', ')); return; }
+    $('fbMasterUp').disabled=true; let done=0; const total=fl.reduce((t,f)=>t+f.size,0); let sent=0;
+    try{ let i=0; const run=async()=>{ while(i<fl.length){ const f=fl[i++]; let last=0; await FB.uploadMaster(f,p=>{ sent+=(p*f.size-last); last=p*f.size; m(`Uploading… ${Math.round(sent*100/total)}% (${done}/${fl.length} files)`); }); done++; } };
+      await Promise.all([run(),run(),run(),run()]); m(`Uploaded ${done} files. Staff get the new data next time they open the site.`); }
+    catch(e){ m('Upload stopped ('+(e.code||e.message)+'). Select the files again and retry.'); }
+    finally{ $('fbMasterUp').disabled=false; } });
+})();
+</script>
+</body>
+</html>
